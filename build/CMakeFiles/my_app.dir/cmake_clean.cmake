@@ -2,6 +2,10 @@ file(REMOVE_RECURSE
   "CMakeFiles/my_app.dir/link.d"
   "CMakeFiles/my_app.dir/main.cpp.o"
   "CMakeFiles/my_app.dir/main.cpp.o.d"
+  "CMakeFiles/my_app.dir/mesh.cpp.o"
+  "CMakeFiles/my_app.dir/mesh.cpp.o.d"
+  "CMakeFiles/my_app.dir/model.cpp.o"
+  "CMakeFiles/my_app.dir/model.cpp.o.d"
   "my_app"
   "my_app.pdb"
 )

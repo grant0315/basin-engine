@@ -1,8 +1,27 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
+#include <iostream>
 #include <vector>
 
 #include "model.h"
+
+void Model::processNode(aiNode *node, const aiScene *scene) {
+  // Process each node from scene (i.e. node->meshes and children nodes)
+  for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+    aiMesh *assimpMesh = scene->mMeshes[node->mMeshes[i]];
+    Mesh mesh = processMesh(assimpMesh, scene);
+    meshes.push_back(mesh);
+  }
+
+  // If there are children nodes, TREE TRAVERSAL
+  if (node->mNumChildren > 0) {
+    for (unsigned int i = 0; i < node->mNumChildren; i++) {
+      processNode(node->mChildren[i], scene);
+    }
+  }
+
+  std::cout << "Successfully traversed assimp node tree" << std::endl;
+}
 
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
   std::vector<Vertex> vertices;
@@ -18,7 +37,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
     // Positions
     vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y,
-                                mesh->mVertices[i].y);
+                                mesh->mVertices[i].z);
 
     // Normals
     if (mesh->HasNormals()) {
@@ -44,6 +63,11 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
       indices.push_back(face.mIndices[j]);
     }
   }
+
+  std::cout << "Mesh has " << vertices.size() << " vertices" << std::endl;
+  std::cout << "First vertex position: " << verties[0].Position.x << ", "
+            << vertices[0].Position.y << ", " << vertices.Position.z
+            << std::endl;
 
   return Mesh(vertices, indices, textures);
 }

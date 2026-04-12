@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <iostream>
 
 class Model {
 public:
@@ -18,6 +19,7 @@ private:
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
         !scene->mRootNode) {
       // TODO: Handle errors here
+      std::cout << "ERROR::ASSIMP::LOAD_FAILED path: " << path << std::endl;
       return;
     }
     directory = path.substr(0, path.find_last_of('/'));

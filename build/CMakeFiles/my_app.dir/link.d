@@ -3,6 +3,8 @@ my_app: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crti.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
   CMakeFiles/my_app.dir/main.cpp.o \
+  CMakeFiles/my_app.dir/model.cpp.o \
+  CMakeFiles/my_app.dir/mesh.cpp.o \
   /usr/lib/libassimp.so.6.0.4 \
   libglad.a \
   /usr/lib/libglfw.so.3.4 \
@@ -50,6 +52,10 @@ my_app: \
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o:
 
 CMakeFiles/my_app.dir/main.cpp.o:
+
+CMakeFiles/my_app.dir/model.cpp.o:
+
+CMakeFiles/my_app.dir/mesh.cpp.o:
 
 /usr/lib/libassimp.so.6.0.4:
 

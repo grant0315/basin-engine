@@ -24,6 +24,8 @@ public:
   Mesh(std::vector<Vertex> v, std::vector<unsigned int> i,
        std::vector<Texture> t);
 
+  void Render();
+
   // --- GETTERS ----
   unsigned int GetVAO() { return VAO; }
   unsigned int GetVBO() { return VBO; }

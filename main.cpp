@@ -17,14 +17,15 @@ const char *vertexShaderSource =
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
-    "  gl_position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);"
+    "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);"
     "}\0";
 
 const char *fragmentShaderSource =
-    "version 330 core\n"
-    "out vec4 fragColor\n"
+    "#version 330 core\n"
+    "out vec4 fragColor;\n"
     "void main()\n"
-    "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f)\n"
+    "{\n"
+    "  fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -60,20 +61,12 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetKeyCallback(window, key_callback);
 
-  // Setup model details
-  Model test_model = Model("/assets/couch.obj");
-  glBindBuffer(GL_ARRAY_BUFFER, test_model.meshes[0].GetVBO());
-  glBufferData(GL_ARRAY_BUFFER, sizeof(test_model.meshes[0].vertices),
-               &test_model.meshes[0].vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                        3 * test_model.meshes[0].GetVBO(), (void *)0);
-  glEnableVertexAttribArray(0);
-
   unsigned int vertexShader, fragmentShader, shaderProgram;
   vertexShader = glCreateShader(GL_VERTEX_SHADER);
   fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   shaderProgram = glCreateProgram();
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+  glCompileShader(vertexShader);
 
   int success;
   char infoLog[512];
@@ -86,6 +79,7 @@ int main() {
   }
 
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+  glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 
   if (!success) {
@@ -107,10 +101,17 @@ int main() {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  glBindVertexArray(test_model.meshes[0].GetVAO());
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+  Model test_model = Model("assets/couch.obj");
 
   while (!glfwWindowShouldClose(window)) {
+    glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Loop through all meshes on test model
+    for (unsigned int i = 0; i < test_model.meshes.size(); i++) {
+      test_model.meshes[i].Render();
+    }
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
