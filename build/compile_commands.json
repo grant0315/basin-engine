@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/gh/batcave/opengl-testing/build",
+  "command": "/usr/bin/cc  -I/home/gh/batcave/opengl-testing/external/glad/include  -o CMakeFiles/glad.dir/external/glad/src/glad.c.o -c /home/gh/batcave/opengl-testing/external/glad/src/glad.c",
+  "file": "/home/gh/batcave/opengl-testing/external/glad/src/glad.c",
+  "output": "CMakeFiles/glad.dir/external/glad/src/glad.c.o"
+},
+{
+  "directory": "/home/gh/batcave/opengl-testing/build",
+  "command": "/usr/bin/c++  -I/home/gh/batcave/opengl-testing/external/glad/include  -o CMakeFiles/my_app.dir/main.cpp.o -c /home/gh/batcave/opengl-testing/main.cpp",
+  "file": "/home/gh/batcave/opengl-testing/main.cpp",
+  "output": "CMakeFiles/my_app.dir/main.cpp.o"
+}
+]
