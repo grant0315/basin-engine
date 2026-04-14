@@ -12,11 +12,21 @@
 const int SCREEN_HEIGHT = 800;
 const int SCREEN_WIDTH = 1200;
 
+float MOUSE_POS_X = (float)SCREEN_WIDTH / 2;
+float MOUSE_POS_Y = (float)SCREEN_HEIGHT / 2;
+
 glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 1000.0f);
 float cameraSpeed = 10.0f; // adjust for sensitivity
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
+}
+
+void mouse_cursor_callback(GLFWwindow *window, double xpos, double ypos) {
+  float deltaX = MOUSE_POS_X - xpos;
+  float deltaY = MOUSE_POS_Y - ypos;
+
+  // Translate camera angle based on deltaX and deltaY changes
 }
 
 void key_movement(GLFWwindow *window) {
@@ -62,6 +72,8 @@ int main() {
   }
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouse_cursor_callback);
   glfwSetKeyCallback(window, key_callback);
 
   // Disable face culling
@@ -74,7 +86,9 @@ int main() {
 
   Model test_model = Model("assets/couch.obj");
   Entity test_entity = Entity("couch", &test_model);
-  glm::vec3 modelCenter = test_model.getModelCenter();
+  glm::vec3 scale = glm::vec3(0.1f, 0.1f, 0.1f);
+  test_entity.setScale(scale);
+  glm::vec3 modelCenter = test_entity.getWorldCenter();
 
   glm::mat4 view = glm::lookAt(modelCenter + glm::vec3(0.0f, 0.0f, 1000.0f),
                                modelCenter, glm::vec3(0.0f, 1.0f, 0.0f));

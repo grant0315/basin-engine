@@ -50,6 +50,13 @@ public:
     return m_modelMatrix;
   }
 
+  glm::vec3 getWorldCenter() {
+    glm::vec3 modelCenter = m_model->getModelCenter();
+    glm::vec4 center4 = glm::vec4(modelCenter, 1.0f);
+    glm::vec4 worldCenter4 = getModelMatrix() * center4;
+    return glm::vec3(worldCenter4);
+  }
+
   glm::vec3 getPosition() const { return m_position; }
   glm::quat getRotation() const { return m_rotation; }
 
