@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/gh/batcave/opengl-testing/main.cpp" "CMakeFiles/my_app.dir/main.cpp.o" "gcc" "CMakeFiles/my_app.dir/main.cpp.o.d"
   "/home/gh/batcave/opengl-testing/mesh.cpp" "CMakeFiles/my_app.dir/mesh.cpp.o" "gcc" "CMakeFiles/my_app.dir/mesh.cpp.o.d"
   "/home/gh/batcave/opengl-testing/model.cpp" "CMakeFiles/my_app.dir/model.cpp.o" "gcc" "CMakeFiles/my_app.dir/model.cpp.o.d"
+  "/home/gh/batcave/opengl-testing/shader.cpp" "CMakeFiles/my_app.dir/shader.cpp.o" "gcc" "CMakeFiles/my_app.dir/shader.cpp.o.d"
   "" "my_app" "gcc" "CMakeFiles/my_app.dir/link.d"
   )
 

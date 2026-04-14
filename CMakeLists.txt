@@ -19,7 +19,7 @@ add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
 # 4. APP SETUP
-add_executable(my_app main.cpp model.cpp mesh.cpp)
+add_executable(my_app main.cpp model.cpp mesh.cpp shader.cpp)
 
 # Link everything together
 target_link_libraries(my_app PRIVATE assimp::assimp glad glfw OpenGL::GL)

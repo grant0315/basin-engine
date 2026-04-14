@@ -65,8 +65,20 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
   }
 
   std::cout << "Mesh has " << vertices.size() << " vertices" << std::endl;
-  std::cout << "First vertex position: " << verties[0].Position.x << ", "
-            << vertices[0].Position.y << ", " << vertices.Position.z
+  std::cout << "First vertex position: " << vertices[0].Position.x << ", "
+            << vertices[0].Position.y << ", " << vertices[0].Position.z
+            << std::endl;
+
+  // Print bounding box
+  glm::vec3 minPos = vertices[0].Position;
+  glm::vec3 maxPos = vertices[0].Position;
+  for (const auto &v : vertices) {
+    minPos = glm::min(minPos, v.Position);
+    maxPos = glm::max(maxPos, v.Position);
+  }
+  std::cout << "Min: " << minPos.x << ", " << minPos.y << ", " << minPos.z
+            << std::endl;
+  std::cout << "Max: " << maxPos.x << ", " << maxPos.y << ", " << maxPos.z
             << std::endl;
 
   return Mesh(vertices, indices, textures);

@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 class Model {
@@ -10,7 +11,48 @@ public:
 
   Model(std::string const &path) { loadModel(path); }
 
+  // --- Getters ---
+  glm::vec3 getModelCenter() {
+    if (!m_calculatedBoundingBox) {
+      calculateBoundingBox();
+    }
+    return (m_minPos + m_maxPos) / 2.0f;
+  }
+
+  std::vector<glm::vec3> getBoundingBox() {
+    if (!m_calculatedBoundingBox) {
+      calculateBoundingBox();
+    }
+    return {m_minPos, m_maxPos};
+  }
+
+  void render() {
+    for (unsigned int i = 0; i < meshes.size(); i++) {
+      meshes[i].Render();
+    }
+  }
+
 private:
+  bool m_calculatedBoundingBox = false;
+  glm::vec3 m_minPos;
+  glm::vec3 m_maxPos;
+
+  void calculateBoundingBox() {
+    if (meshes.empty())
+      return;
+
+    // Start with the first mesh's bounding box
+    std::vector<glm::vec3> firstBox = meshes[0].getBoundingBox();
+    m_minPos = firstBox[0];
+    m_maxPos = firstBox[1];
+
+    for (unsigned int i = 1; i < meshes.size(); i++) {
+      std::vector<glm::vec3> box = meshes[i].getBoundingBox();
+      m_minPos = glm::min(m_minPos, box[0]);
+      m_maxPos = glm::max(m_maxPos, box[1]);
+    }
+    m_calculatedBoundingBox = true;
+  }
   void loadModel(std::string const &path) {
     Assimp::Importer importer;
     const aiScene *scene =

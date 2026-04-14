@@ -5,6 +5,7 @@ my_app: \
   CMakeFiles/my_app.dir/main.cpp.o \
   CMakeFiles/my_app.dir/model.cpp.o \
   CMakeFiles/my_app.dir/mesh.cpp.o \
+  CMakeFiles/my_app.dir/shader.cpp.o \
   /usr/lib/libassimp.so.6.0.4 \
   libglad.a \
   /usr/lib/libglfw.so.3.4 \
@@ -56,6 +57,8 @@ CMakeFiles/my_app.dir/main.cpp.o:
 CMakeFiles/my_app.dir/model.cpp.o:
 
 CMakeFiles/my_app.dir/mesh.cpp.o:
+
+CMakeFiles/my_app.dir/shader.cpp.o:
 
 /usr/lib/libassimp.so.6.0.4:
 
