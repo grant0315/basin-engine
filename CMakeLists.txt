@@ -29,10 +29,10 @@ add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
 # 4. APP SETUP
-add_executable(my_app main.cpp model.cpp mesh.cpp shader.cpp text_renderer.cpp camera.cpp input_manager.cpp collision_system.cpp primitive_generator.cpp)
+add_executable(my_app main.cpp model.cpp mesh.cpp shader.cpp text_renderer.cpp camera.cpp input_manager.cpp collision_system.cpp primitive_generator.cpp scene.cpp)
 
 # Include FreeType headers and local include directory
-target_include_directories(my_app PRIVATE ${FREETYPE_INCLUDE_DIRS} include external/nlohmann)
+target_include_directories(my_app PRIVATE ${FREETYPE_INCLUDE_DIRS} include external)
 
 # Link everything together
 target_link_libraries(my_app PRIVATE assimp::assimp glad glfw OpenGL::GL ${FREETYPE_LIBRARIES})

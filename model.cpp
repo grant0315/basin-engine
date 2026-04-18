@@ -124,15 +124,18 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, std::string dir) {
       MeshColor meshColor;
       meshColor.baseColor = glm::vec3(diffuseColor.r, diffuseColor.g, diffuseColor.b);
       
-      // Try to load texture from textures folder
-      std::string texturePath = dir + "/../textures/shop_1_shop_1_BaseColor.png";
-      unsigned int textureID = loadTextureFromFile(texturePath.c_str());
-      if (textureID != 0) {
-        Texture tex;
-        tex.id = textureID;
-        tex.type = "texture_diffuse";
-        tex.path = texturePath;
-        textures.push_back(tex);
+      // Load textures from customTextures if provided
+      if (!customTextures.baseColor.empty()) {
+        std::string texFolder = texturesFolder.empty() ? (dir + "/textures") : texturesFolder;
+        std::string baseColorPath = texFolder + "/" + customTextures.baseColor;
+        unsigned int textureID = loadTextureFromFile(baseColorPath.c_str());
+        if (textureID != 0) {
+          Texture tex;
+          tex.id = textureID;
+          tex.type = "texture_diffuse";
+          tex.path = baseColorPath;
+          textures.push_back(tex);
+        }
       }
       
       return Mesh(vertices, indices, textures, meshColor);

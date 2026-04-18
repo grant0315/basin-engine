@@ -8,14 +8,28 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
+struct ModelTextures {
+  std::string baseColor;
+  std::string normal;
+  std::string height;
+  std::string roughness;
+};
 
 class Model {
 public:
   std::vector<Mesh> meshes;
   std::string directory;
+  std::string texturesFolder;
+  ModelTextures customTextures;
 
-  Model(std::string const &path) { loadModel(path); }
+  Model(std::string const &path, std::string const &texturesDir = "", ModelTextures textures = {}) {
+    texturesFolder = texturesDir;
+    customTextures = textures;
+    loadModel(path);
+  }
   Model(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
         std::vector<Texture> textures = std::vector<Texture>()) {
     meshes.push_back(Mesh(vertices, indices, textures));

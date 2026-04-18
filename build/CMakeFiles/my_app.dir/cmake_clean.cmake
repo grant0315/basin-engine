@@ -14,6 +14,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/my_app.dir/model.cpp.o.d"
   "CMakeFiles/my_app.dir/primitive_generator.cpp.o"
   "CMakeFiles/my_app.dir/primitive_generator.cpp.o.d"
+  "CMakeFiles/my_app.dir/scene.cpp.o"
+  "CMakeFiles/my_app.dir/scene.cpp.o.d"
   "CMakeFiles/my_app.dir/shader.cpp.o"
   "CMakeFiles/my_app.dir/shader.cpp.o.d"
   "CMakeFiles/my_app.dir/text_renderer.cpp.o"

@@ -390,6 +390,52 @@ CMakeFiles/my_app.dir/main.cpp.o: \
  /home/gh/batcave/opengl-testing/input_manager.h \
  /home/gh/batcave/opengl-testing/player.h \
  /home/gh/batcave/opengl-testing/primitive_generator.h \
+ /home/gh/batcave/opengl-testing/scene.h \
+ /home/gh/batcave/opengl-testing/external/nlohmann/json.hpp \
+ /usr/include/c++/15.2.1/iterator \
+ /usr/include/c++/15.2.1/bits/stream_iterator.h \
+ /usr/include/c++/15.2.1/memory \
+ /usr/include/c++/15.2.1/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/15.2.1/bits/align.h \
+ /usr/include/c++/15.2.1/bits/unique_ptr.h \
+ /usr/include/c++/15.2.1/bits/shared_ptr.h \
+ /usr/include/c++/15.2.1/bits/shared_ptr_base.h \
+ /usr/include/c++/15.2.1/bits/allocated_ptr.h \
+ /usr/include/c++/15.2.1/ext/concurrence.h \
+ /usr/include/c++/15.2.1/bits/shared_ptr_atomic.h \
+ /usr/include/c++/15.2.1/bits/atomic_base.h \
+ /usr/include/c++/15.2.1/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/15.2.1/backward/auto_ptr.h \
+ /usr/include/c++/15.2.1/pstl/glue_memory_defs.h \
+ /usr/include/c++/15.2.1/utility \
+ /usr/include/c++/15.2.1/bits/stl_relops.h \
+ /usr/include/c++/15.2.1/forward_list \
+ /usr/include/c++/15.2.1/bits/forward_list.h \
+ /usr/include/c++/15.2.1/bits/forward_list.tcc \
+ /usr/include/c++/15.2.1/map /usr/include/c++/15.2.1/bits/stl_tree.h \
+ /usr/include/c++/15.2.1/bits/stl_map.h \
+ /usr/include/c++/15.2.1/bits/stl_multimap.h \
+ /usr/include/c++/15.2.1/valarray \
+ /usr/include/c++/15.2.1/bits/valarray_array.h \
+ /usr/include/c++/15.2.1/bits/valarray_array.tcc \
+ /usr/include/c++/15.2.1/bits/valarray_before.h \
+ /usr/include/c++/15.2.1/bits/slice_array.h \
+ /usr/include/c++/15.2.1/bits/valarray_after.h \
+ /usr/include/c++/15.2.1/bits/gslice.h \
+ /usr/include/c++/15.2.1/bits/gslice_array.h \
+ /usr/include/c++/15.2.1/bits/mask_array.h \
+ /usr/include/c++/15.2.1/bits/indirect_array.h \
+ /usr/include/c++/15.2.1/version /usr/include/c++/15.2.1/filesystem \
+ /usr/include/c++/15.2.1/bits/fs_fwd.h \
+ /usr/include/c++/15.2.1/bits/chrono.h /usr/include/c++/15.2.1/ratio \
+ /usr/include/c++/15.2.1/bits/parse_numbers.h \
+ /usr/include/c++/15.2.1/bits/fs_path.h /usr/include/c++/15.2.1/codecvt \
+ /usr/include/c++/15.2.1/bits/fs_dir.h \
+ /usr/include/c++/15.2.1/bits/fs_ops.h /usr/include/c++/15.2.1/optional \
+ /usr/include/c++/15.2.1/numeric \
+ /usr/include/c++/15.2.1/bits/stl_numeric.h \
+ /usr/include/c++/15.2.1/pstl/glue_numeric_defs.h \
+ /usr/include/c++/15.2.1/any \
  /home/gh/batcave/opengl-testing/text_renderer.h \
  /usr/include/freetype2/ft2build.h \
  /usr/include/freetype2/freetype/config/ftheader.h \
@@ -406,7 +452,4 @@ CMakeFiles/my_app.dir/main.cpp.o: \
  /usr/include/freetype2/freetype/ftimage.h \
  /usr/include/freetype2/freetype/fterrors.h \
  /usr/include/freetype2/freetype/ftmoderr.h \
- /usr/include/freetype2/freetype/fterrdef.h /usr/include/c++/15.2.1/map \
- /usr/include/c++/15.2.1/bits/stl_tree.h \
- /usr/include/c++/15.2.1/bits/stl_map.h \
- /usr/include/c++/15.2.1/bits/stl_multimap.h
+ /usr/include/freetype2/freetype/fterrdef.h

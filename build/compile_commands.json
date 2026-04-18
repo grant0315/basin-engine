@@ -7,56 +7,62 @@
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/main.cpp.o -c /home/gh/batcave/opengl-testing/main.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/main.cpp.o -c /home/gh/batcave/opengl-testing/main.cpp",
   "file": "/home/gh/batcave/opengl-testing/main.cpp",
   "output": "CMakeFiles/my_app.dir/main.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/model.cpp.o -c /home/gh/batcave/opengl-testing/model.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/model.cpp.o -c /home/gh/batcave/opengl-testing/model.cpp",
   "file": "/home/gh/batcave/opengl-testing/model.cpp",
   "output": "CMakeFiles/my_app.dir/model.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/mesh.cpp.o -c /home/gh/batcave/opengl-testing/mesh.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/mesh.cpp.o -c /home/gh/batcave/opengl-testing/mesh.cpp",
   "file": "/home/gh/batcave/opengl-testing/mesh.cpp",
   "output": "CMakeFiles/my_app.dir/mesh.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/shader.cpp.o -c /home/gh/batcave/opengl-testing/shader.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/shader.cpp.o -c /home/gh/batcave/opengl-testing/shader.cpp",
   "file": "/home/gh/batcave/opengl-testing/shader.cpp",
   "output": "CMakeFiles/my_app.dir/shader.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/text_renderer.cpp.o -c /home/gh/batcave/opengl-testing/text_renderer.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/text_renderer.cpp.o -c /home/gh/batcave/opengl-testing/text_renderer.cpp",
   "file": "/home/gh/batcave/opengl-testing/text_renderer.cpp",
   "output": "CMakeFiles/my_app.dir/text_renderer.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/camera.cpp.o -c /home/gh/batcave/opengl-testing/camera.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/camera.cpp.o -c /home/gh/batcave/opengl-testing/camera.cpp",
   "file": "/home/gh/batcave/opengl-testing/camera.cpp",
   "output": "CMakeFiles/my_app.dir/camera.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/input_manager.cpp.o -c /home/gh/batcave/opengl-testing/input_manager.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/input_manager.cpp.o -c /home/gh/batcave/opengl-testing/input_manager.cpp",
   "file": "/home/gh/batcave/opengl-testing/input_manager.cpp",
   "output": "CMakeFiles/my_app.dir/input_manager.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/collision_system.cpp.o -c /home/gh/batcave/opengl-testing/collision_system.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/collision_system.cpp.o -c /home/gh/batcave/opengl-testing/collision_system.cpp",
   "file": "/home/gh/batcave/opengl-testing/collision_system.cpp",
   "output": "CMakeFiles/my_app.dir/collision_system.cpp.o"
 },
 {
   "directory": "/home/gh/batcave/opengl-testing/build",
-  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/primitive_generator.cpp.o -c /home/gh/batcave/opengl-testing/primitive_generator.cpp",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/primitive_generator.cpp.o -c /home/gh/batcave/opengl-testing/primitive_generator.cpp",
   "file": "/home/gh/batcave/opengl-testing/primitive_generator.cpp",
   "output": "CMakeFiles/my_app.dir/primitive_generator.cpp.o"
+},
+{
+  "directory": "/home/gh/batcave/opengl-testing/build",
+  "command": "/usr/bin/c++  -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external -I/home/gh/batcave/opengl-testing/external/glad/include -O3 -DNDEBUG -o CMakeFiles/my_app.dir/scene.cpp.o -c /home/gh/batcave/opengl-testing/scene.cpp",
+  "file": "/home/gh/batcave/opengl-testing/scene.cpp",
+  "output": "CMakeFiles/my_app.dir/scene.cpp.o"
 }
 ]

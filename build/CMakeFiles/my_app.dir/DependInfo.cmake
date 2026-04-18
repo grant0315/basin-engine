@@ -15,6 +15,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/gh/batcave/opengl-testing/mesh.cpp" "CMakeFiles/my_app.dir/mesh.cpp.o" "gcc" "CMakeFiles/my_app.dir/mesh.cpp.o.d"
   "/home/gh/batcave/opengl-testing/model.cpp" "CMakeFiles/my_app.dir/model.cpp.o" "gcc" "CMakeFiles/my_app.dir/model.cpp.o.d"
   "/home/gh/batcave/opengl-testing/primitive_generator.cpp" "CMakeFiles/my_app.dir/primitive_generator.cpp.o" "gcc" "CMakeFiles/my_app.dir/primitive_generator.cpp.o.d"
+  "/home/gh/batcave/opengl-testing/scene.cpp" "CMakeFiles/my_app.dir/scene.cpp.o" "gcc" "CMakeFiles/my_app.dir/scene.cpp.o.d"
   "/home/gh/batcave/opengl-testing/shader.cpp" "CMakeFiles/my_app.dir/shader.cpp.o" "gcc" "CMakeFiles/my_app.dir/shader.cpp.o.d"
   "/home/gh/batcave/opengl-testing/text_renderer.cpp" "CMakeFiles/my_app.dir/text_renderer.cpp.o" "gcc" "CMakeFiles/my_app.dir/text_renderer.cpp.o.d"
   "" "my_app" "gcc" "CMakeFiles/my_app.dir/link.d"

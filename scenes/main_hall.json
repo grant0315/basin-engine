@@ -1,0 +1,37 @@
+{
+  "scene_name": "main_hall",
+  "camera": {
+    "position": [0, 10, 20],
+    "fov": 45
+  },
+  "spawn_point": [0, 10, 0],
+  "entities": [
+    {
+      "name": "floor",
+      "type": "primitive",
+      "primitive_type": "plane",
+      "width": 1000,
+      "depth": 1000,
+      "thickness": 1,
+      "position": [0, 0, 0],
+      "scale": [1, 1, 1],
+      "is_collidable": true
+    },
+    {
+      "name": "shop",
+      "type": "model",
+      "model": "assets/low-poly-shop/source/shop_1.fbx",
+      "position": [0, 0, -20],
+      "rotation": [0, 0, 0],
+      "scale": [0.03, 0.03, 0.03],
+      "textures_folder": "assets/low-poly-shop/textures",
+      "textures": {
+        "base_color": "shop_1_shop_1_BaseColor.png",
+        "normal": "shop_1_shop_1_Normal.png",
+        "height": "shop_1_shop_1_Height.png",
+        "roughness": "shop_1_shop_1_Roughness.png"
+      },
+      "is_collidable": true
+    }
+  ]
+}

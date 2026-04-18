@@ -12,6 +12,7 @@
 #include "input_manager.h"
 #include "player.h"
 #include "primitive_generator.h"
+#include "scene.h"
 #include "text_renderer.h"
 
 const int SCREEN_HEIGHT = 800;
@@ -78,20 +79,10 @@ int main() {
 
   // Initialize player
   Player player = Player(primGen.generateCube(10.0f), true);
-  player.setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
   player.getInputManager()->SetupCallbacks(window);
   std::cout << "Camera front vector: " << player.getCamera()->GetFront().x
             << ", " << player.getCamera()->GetFront().y << ", "
             << player.getCamera()->GetFront().z << std::endl;
-
-  // Init floor entity
-  Entity floorPlane =
-      Entity("floor_plane", primGen.generatePlane(1000.0f, 1000.0f), true);
-  floorPlane.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-
-  // Init collision detection system
-  CollisionSystem colSys =
-      CollisionSystem(std::vector<Entity *>{&player, &floorPlane});
 
   // Initialize text renderer
   TextRenderer textRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -102,13 +93,28 @@ int main() {
 
   Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
-  Model test_model = Model("assets/low-poly-shop/source/shop_1.fbx");
-  Entity test_entity = Entity("shop_front", &test_model, true);
-  glm::vec3 scale = glm::vec3(0.03f, 0.03f, 0.03f);
-  test_entity.setScale(scale);
-  test_entity.setPosition(glm::vec3(0.0f, 0.0f, -20.0f));
-  test_entity.setRotationEuler(glm::vec3(0.0f, 0.0f, 0.0f));
-  glm::vec3 modelCenter = test_entity.getWorldCenter();
+  // Load scene from JSON
+  Scene scene;
+  if (!scene.loadFromFile("scenes/main_hall.json")) {
+    std::cout << "Failed to load scene, using fallback" << std::endl;
+  }
+  
+  // Get scene entities for collision and rendering
+  std::vector<Entity*> sceneEntities = scene.getEntities();
+  
+  // Add scene entities to collision system
+  std::vector<Entity*> collisionEntities = {&player};
+  for (Entity* ent : sceneEntities) {
+    if (ent->isCollidable()) {
+      collisionEntities.push_back(ent);
+    }
+  }
+  
+  CollisionSystem colSys = CollisionSystem(collisionEntities);
+  
+  // Use spawn point from scene
+  glm::vec3 spawnPoint = scene.getSpawnPoint();
+  player.setPosition(spawnPoint);
 
   lastTime = glfwGetTime();
   double lastFrameTime = lastTime;
@@ -135,35 +141,32 @@ int main() {
     // Handle movement
     player.handleInput(window, deltaTime);
 
-    // Check the users desired position bounding box
-    // Determine if that bounding box intersects with another entities current
-    // bounding box If so, check what axes do they intersect, and then don't
-    // allow movement in that axes
     glm::vec3 playerCurrentPosition = player.getPosition();
     glm::vec3 playerDesiredPosition = player.getDesiredPosition();
-    AABB playerCurrentAABB = player.getAxisAlignedBoundingBox();
-    AABB playerDesiredAABB =
-        player.getAxisAlignedBoundingBoxAtPosition(player.getDesiredPosition());
-    AABB floorPlaneAABB = floorPlane.getAxisAlignedBoundingBox();
 
-    glm::vec3 testPosX =
-        glm::vec3(playerDesiredPosition.x, playerCurrentPosition.y,
-                  playerCurrentPosition.z);
-    glm::vec3 testPosY =
-        glm::vec3(playerCurrentPosition.x, playerDesiredPosition.y,
-                  playerCurrentPosition.z);
-    glm::vec3 testPosZ =
-        glm::vec3(playerCurrentPosition.x, playerCurrentPosition.y,
-                  playerDesiredPosition.z);
-    // Get AABB at each test position, and check if it collides with the floor
-    // plane
-    bool xAxisBlocked, yAxisBlocked, zAxisBlocked;
-    xAxisBlocked = colSys.checkAABBCollision(
-        player.getAxisAlignedBoundingBoxAtPosition(testPosX), floorPlaneAABB);
-    yAxisBlocked = colSys.checkAABBCollision(
-        player.getAxisAlignedBoundingBoxAtPosition(testPosY), floorPlaneAABB);
-    zAxisBlocked = colSys.checkAABBCollision(
-        player.getAxisAlignedBoundingBoxAtPosition(testPosZ), floorPlaneAABB);
+    // Check collision with all scene entities
+    bool xAxisBlocked = false, yAxisBlocked = false, zAxisBlocked = false;
+    
+    for (Entity* ent : sceneEntities) {
+      if (!ent->isCollidable()) continue;
+      
+      AABB entAABB = ent->getAxisAlignedBoundingBox();
+      
+      glm::vec3 testPosX = glm::vec3(playerDesiredPosition.x, playerCurrentPosition.y, playerCurrentPosition.z);
+      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosX), entAABB)) {
+        xAxisBlocked = true;
+      }
+      
+      glm::vec3 testPosY = glm::vec3(playerCurrentPosition.x, playerDesiredPosition.y, playerCurrentPosition.z);
+      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosY), entAABB)) {
+        yAxisBlocked = true;
+      }
+      
+      glm::vec3 testPosZ = glm::vec3(playerCurrentPosition.x, playerCurrentPosition.y, playerDesiredPosition.z);
+      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosZ), entAABB)) {
+        zAxisBlocked = true;
+      }
+    }
 
     // Determine if moving up or down for proper Y collision handling
     bool movingUp = playerDesiredPosition.y > playerCurrentPosition.y;
@@ -193,10 +196,10 @@ int main() {
     shader.setUniform("view", view);
     shader.setUniform("projection", projection);
 
-    shader.setUniform("objectColor", glm::vec3(0.8f, 0.4f, 0.1f));
-    test_entity.Draw(shader);
-    shader.setUniform("objectColor", glm::vec3(0.3f, 0.3f, 0.3f));
-    floorPlane.Draw(shader);
+    // Draw scene entities
+    for (Entity* ent : sceneEntities) {
+      ent->Draw(shader);
+    }
 
     // Render debug text
     std::stringstream ss;

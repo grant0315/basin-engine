@@ -100,10 +100,10 @@ public:
 
   glm::vec3 getPosition() const { return m_position; }
   glm::quat getRotation() const { return m_rotation; }
-
+  glm::vec3 getScale() const { return m_scale; }
   glm::vec3 getModelCenter() const { return m_model->getModelCenter(); }
-
   std::string getName() { return m_name; }
+  bool isCollidable() const { return m_isCollidable; }
 
   // --- Setters ---
   void setPosition(glm::vec3 pos) {
@@ -144,13 +144,13 @@ public:
     // 3. Render each mesh with its textures
     glm::mat4 modelMatrix = getModelMatrix();
     shader.setUniform("model", modelMatrix);
-    
+
     for (unsigned int i = 0; i < m_model->meshes.size(); i++) {
-      Mesh& mesh = m_model->meshes[i];
-      
+      Mesh &mesh = m_model->meshes[i];
+
       // Set base color
       shader.setUniform("objectColor", mesh.GetColor());
-      
+
       // Bind texture if available
       if (!mesh.textures.empty()) {
         glActiveTexture(GL_TEXTURE0);
@@ -159,10 +159,10 @@ public:
       } else {
         shader.setUniform("hasTexture", false);
       }
-      
+
       mesh.Render();
     }
-    
+
     m_dirty = false; // Reset dirty flag
   }
 

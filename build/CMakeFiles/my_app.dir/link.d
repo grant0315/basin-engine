@@ -11,6 +11,7 @@ my_app: \
   CMakeFiles/my_app.dir/input_manager.cpp.o \
   CMakeFiles/my_app.dir/collision_system.cpp.o \
   CMakeFiles/my_app.dir/primitive_generator.cpp.o \
+  CMakeFiles/my_app.dir/scene.cpp.o \
   /usr/lib/libassimp.so.6.0.4 \
   libglad.a \
   /usr/lib/libglfw.so.3.4 \
@@ -79,6 +80,8 @@ CMakeFiles/my_app.dir/input_manager.cpp.o:
 CMakeFiles/my_app.dir/collision_system.cpp.o:
 
 CMakeFiles/my_app.dir/primitive_generator.cpp.o:
+
+CMakeFiles/my_app.dir/scene.cpp.o:
 
 /usr/lib/libassimp.so.6.0.4:
 

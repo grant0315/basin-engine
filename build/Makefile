@@ -347,6 +347,30 @@ primitive_generator.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/primitive_generator.cpp.s
 .PHONY : primitive_generator.cpp.s
 
+scene.o: scene.cpp.o
+.PHONY : scene.o
+
+# target to build an object file
+scene.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/scene.cpp.o
+.PHONY : scene.cpp.o
+
+scene.i: scene.cpp.i
+.PHONY : scene.i
+
+# target to preprocess a source file
+scene.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/scene.cpp.i
+.PHONY : scene.cpp.i
+
+scene.s: scene.cpp.s
+.PHONY : scene.s
+
+# target to generate assembly for a file
+scene.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/scene.cpp.s
+.PHONY : scene.cpp.s
+
 shader.o: shader.cpp.o
 .PHONY : shader.o
 
@@ -430,6 +454,9 @@ help:
 	@echo "... primitive_generator.o"
 	@echo "... primitive_generator.i"
 	@echo "... primitive_generator.s"
+	@echo "... scene.o"
+	@echo "... scene.i"
+	@echo "... scene.s"
 	@echo "... shader.o"
 	@echo "... shader.i"
 	@echo "... shader.s"
