@@ -1,0 +1,8 @@
+build/
+*.o
+*.a
+my_app
+.cache/
+compile_commands.json
+CMakeCache.txt
+CMakeLists.txt.user
