@@ -128,12 +128,87 @@ CMakeFiles/my_app.dir/shader.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/shader.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/shader.cpp -o CMakeFiles/my_app.dir/shader.cpp.s
 
+CMakeFiles/my_app.dir/text_renderer.cpp.o: CMakeFiles/my_app.dir/flags.make
+CMakeFiles/my_app.dir/text_renderer.cpp.o: /home/gh/batcave/opengl-testing/text_renderer.cpp
+CMakeFiles/my_app.dir/text_renderer.cpp.o: CMakeFiles/my_app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/my_app.dir/text_renderer.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_app.dir/text_renderer.cpp.o -MF CMakeFiles/my_app.dir/text_renderer.cpp.o.d -o CMakeFiles/my_app.dir/text_renderer.cpp.o -c /home/gh/batcave/opengl-testing/text_renderer.cpp
+
+CMakeFiles/my_app.dir/text_renderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_app.dir/text_renderer.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/gh/batcave/opengl-testing/text_renderer.cpp > CMakeFiles/my_app.dir/text_renderer.cpp.i
+
+CMakeFiles/my_app.dir/text_renderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/text_renderer.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/text_renderer.cpp -o CMakeFiles/my_app.dir/text_renderer.cpp.s
+
+CMakeFiles/my_app.dir/camera.cpp.o: CMakeFiles/my_app.dir/flags.make
+CMakeFiles/my_app.dir/camera.cpp.o: /home/gh/batcave/opengl-testing/camera.cpp
+CMakeFiles/my_app.dir/camera.cpp.o: CMakeFiles/my_app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/my_app.dir/camera.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_app.dir/camera.cpp.o -MF CMakeFiles/my_app.dir/camera.cpp.o.d -o CMakeFiles/my_app.dir/camera.cpp.o -c /home/gh/batcave/opengl-testing/camera.cpp
+
+CMakeFiles/my_app.dir/camera.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_app.dir/camera.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/gh/batcave/opengl-testing/camera.cpp > CMakeFiles/my_app.dir/camera.cpp.i
+
+CMakeFiles/my_app.dir/camera.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/camera.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/camera.cpp -o CMakeFiles/my_app.dir/camera.cpp.s
+
+CMakeFiles/my_app.dir/input_manager.cpp.o: CMakeFiles/my_app.dir/flags.make
+CMakeFiles/my_app.dir/input_manager.cpp.o: /home/gh/batcave/opengl-testing/input_manager.cpp
+CMakeFiles/my_app.dir/input_manager.cpp.o: CMakeFiles/my_app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/my_app.dir/input_manager.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_app.dir/input_manager.cpp.o -MF CMakeFiles/my_app.dir/input_manager.cpp.o.d -o CMakeFiles/my_app.dir/input_manager.cpp.o -c /home/gh/batcave/opengl-testing/input_manager.cpp
+
+CMakeFiles/my_app.dir/input_manager.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_app.dir/input_manager.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/gh/batcave/opengl-testing/input_manager.cpp > CMakeFiles/my_app.dir/input_manager.cpp.i
+
+CMakeFiles/my_app.dir/input_manager.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/input_manager.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/input_manager.cpp -o CMakeFiles/my_app.dir/input_manager.cpp.s
+
+CMakeFiles/my_app.dir/collision_system.cpp.o: CMakeFiles/my_app.dir/flags.make
+CMakeFiles/my_app.dir/collision_system.cpp.o: /home/gh/batcave/opengl-testing/collision_system.cpp
+CMakeFiles/my_app.dir/collision_system.cpp.o: CMakeFiles/my_app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/my_app.dir/collision_system.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_app.dir/collision_system.cpp.o -MF CMakeFiles/my_app.dir/collision_system.cpp.o.d -o CMakeFiles/my_app.dir/collision_system.cpp.o -c /home/gh/batcave/opengl-testing/collision_system.cpp
+
+CMakeFiles/my_app.dir/collision_system.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_app.dir/collision_system.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/gh/batcave/opengl-testing/collision_system.cpp > CMakeFiles/my_app.dir/collision_system.cpp.i
+
+CMakeFiles/my_app.dir/collision_system.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/collision_system.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/collision_system.cpp -o CMakeFiles/my_app.dir/collision_system.cpp.s
+
+CMakeFiles/my_app.dir/primitive_generator.cpp.o: CMakeFiles/my_app.dir/flags.make
+CMakeFiles/my_app.dir/primitive_generator.cpp.o: /home/gh/batcave/opengl-testing/primitive_generator.cpp
+CMakeFiles/my_app.dir/primitive_generator.cpp.o: CMakeFiles/my_app.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/my_app.dir/primitive_generator.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_app.dir/primitive_generator.cpp.o -MF CMakeFiles/my_app.dir/primitive_generator.cpp.o.d -o CMakeFiles/my_app.dir/primitive_generator.cpp.o -c /home/gh/batcave/opengl-testing/primitive_generator.cpp
+
+CMakeFiles/my_app.dir/primitive_generator.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_app.dir/primitive_generator.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/gh/batcave/opengl-testing/primitive_generator.cpp > CMakeFiles/my_app.dir/primitive_generator.cpp.i
+
+CMakeFiles/my_app.dir/primitive_generator.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_app.dir/primitive_generator.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/gh/batcave/opengl-testing/primitive_generator.cpp -o CMakeFiles/my_app.dir/primitive_generator.cpp.s
+
 # Object files for target my_app
 my_app_OBJECTS = \
 "CMakeFiles/my_app.dir/main.cpp.o" \
 "CMakeFiles/my_app.dir/model.cpp.o" \
 "CMakeFiles/my_app.dir/mesh.cpp.o" \
-"CMakeFiles/my_app.dir/shader.cpp.o"
+"CMakeFiles/my_app.dir/shader.cpp.o" \
+"CMakeFiles/my_app.dir/text_renderer.cpp.o" \
+"CMakeFiles/my_app.dir/camera.cpp.o" \
+"CMakeFiles/my_app.dir/input_manager.cpp.o" \
+"CMakeFiles/my_app.dir/collision_system.cpp.o" \
+"CMakeFiles/my_app.dir/primitive_generator.cpp.o"
 
 # External object files for target my_app
 my_app_EXTERNAL_OBJECTS =
@@ -142,16 +217,22 @@ my_app: CMakeFiles/my_app.dir/main.cpp.o
 my_app: CMakeFiles/my_app.dir/model.cpp.o
 my_app: CMakeFiles/my_app.dir/mesh.cpp.o
 my_app: CMakeFiles/my_app.dir/shader.cpp.o
+my_app: CMakeFiles/my_app.dir/text_renderer.cpp.o
+my_app: CMakeFiles/my_app.dir/camera.cpp.o
+my_app: CMakeFiles/my_app.dir/input_manager.cpp.o
+my_app: CMakeFiles/my_app.dir/collision_system.cpp.o
+my_app: CMakeFiles/my_app.dir/primitive_generator.cpp.o
 my_app: CMakeFiles/my_app.dir/build.make
 my_app: CMakeFiles/my_app.dir/compiler_depend.ts
 my_app: /usr/lib/libassimp.so.6.0.4
 my_app: libglad.a
 my_app: /usr/lib/libglfw.so.3.4
+my_app: /usr/lib/libfreetype.so
 my_app: /usr/lib/libz.so
 my_app: /usr/lib/libGLX.so
 my_app: /usr/lib/libOpenGL.so
 my_app: CMakeFiles/my_app.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable my_app"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/gh/batcave/opengl-testing/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable my_app"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/my_app.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

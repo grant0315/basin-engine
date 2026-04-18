@@ -1,8 +1,14 @@
+#ifndef MODEL_H
+#define MODEL_H
+
 #include "mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <string>
+#include <vector>
 
 class Model {
 public:
@@ -10,6 +16,10 @@ public:
   std::string directory;
 
   Model(std::string const &path) { loadModel(path); }
+  Model(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+        std::vector<Texture> textures = std::vector<Texture>()) {
+    meshes.push_back(Mesh(vertices, indices, textures));
+  };
 
   // --- Getters ---
   glm::vec3 getModelCenter() {
@@ -67,9 +77,11 @@ private:
     directory = path.substr(0, path.find_last_of('/'));
 
     // Start recurisve processing from the root
-    processNode(scene->mRootNode, scene);
+    processNode(scene->mRootNode, scene, directory);
   }
 
-  void processNode(aiNode *node, const aiScene *scene);
-  Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+  void processNode(aiNode *node, const aiScene *scene, std::string dir);
+  Mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string dir);
 };
+
+#endif

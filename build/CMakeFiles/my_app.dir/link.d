@@ -6,9 +6,15 @@ my_app: \
   CMakeFiles/my_app.dir/model.cpp.o \
   CMakeFiles/my_app.dir/mesh.cpp.o \
   CMakeFiles/my_app.dir/shader.cpp.o \
+  CMakeFiles/my_app.dir/text_renderer.cpp.o \
+  CMakeFiles/my_app.dir/camera.cpp.o \
+  CMakeFiles/my_app.dir/input_manager.cpp.o \
+  CMakeFiles/my_app.dir/collision_system.cpp.o \
+  CMakeFiles/my_app.dir/primitive_generator.cpp.o \
   /usr/lib/libassimp.so.6.0.4 \
   libglad.a \
   /usr/lib/libglfw.so.3.4 \
+  /usr/lib/libfreetype.so \
   /usr/lib/libz.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/librt.a \
   /usr/lib/libGLX.so \
@@ -40,8 +46,12 @@ my_app: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crtn.o \
   /usr/lib/ld-linux-x86-64.so.2 \
+  /usr/lib/libbz2.so.1.0 \
+  /usr/lib/libpng16.so.16 \
+  /usr/lib/libbrotlidec.so.1 \
   /usr/lib/libGLdispatch.so.0 \
   /usr/lib/libX11.so.6 \
+  /usr/lib/libbrotlicommon.so.1 \
   /usr/lib/libxcb.so.1 \
   /usr/lib/libXau.so.6 \
   /usr/lib/libXdmcp.so.6
@@ -60,11 +70,23 @@ CMakeFiles/my_app.dir/mesh.cpp.o:
 
 CMakeFiles/my_app.dir/shader.cpp.o:
 
+CMakeFiles/my_app.dir/text_renderer.cpp.o:
+
+CMakeFiles/my_app.dir/camera.cpp.o:
+
+CMakeFiles/my_app.dir/input_manager.cpp.o:
+
+CMakeFiles/my_app.dir/collision_system.cpp.o:
+
+CMakeFiles/my_app.dir/primitive_generator.cpp.o:
+
 /usr/lib/libassimp.so.6.0.4:
 
 libglad.a:
 
 /usr/lib/libglfw.so.3.4:
+
+/usr/lib/libfreetype.so:
 
 /usr/lib/libz.so:
 
@@ -128,9 +150,17 @@ libglad.a:
 
 /usr/lib/ld-linux-x86-64.so.2:
 
+/usr/lib/libbz2.so.1.0:
+
+/usr/lib/libpng16.so.16:
+
+/usr/lib/libbrotlidec.so.1:
+
 /usr/lib/libGLdispatch.so.0:
 
 /usr/lib/libX11.so.6:
+
+/usr/lib/libbrotlicommon.so.1:
 
 /usr/lib/libxcb.so.1:
 

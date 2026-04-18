@@ -1,3 +1,6 @@
+#ifndef SHADER_H
+#define SHADER_H
+
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
@@ -30,3 +33,5 @@ private:
   unsigned int m_fragmentShader;
   unsigned int m_shaderProgram;
 };
+
+#endif

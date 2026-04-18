@@ -1,0 +1,9 @@
+TODO:
+- Need to implement logic flow for collision detection:
+  - Player inputs key for implement
+  - Temporarly update their position (or create a test AABB at the new position)
+  - Check collision, If collision:
+    - don't move
+  - else
+    - commit the movement
+  

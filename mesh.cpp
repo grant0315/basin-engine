@@ -7,10 +7,11 @@
 #include <vector>
 
 Mesh::Mesh(std::vector<Vertex> v, std::vector<unsigned int> i,
-           std::vector<Texture> t) {
+           std::vector<Texture> t, MeshColor c) {
   vertices = v;
   indices = i;
   textures = t;
+  color = c;
 
   setupMesh();
 }
@@ -31,8 +32,11 @@ void Mesh::setupMesh() {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
 
   // Bind and upload indicies to EBO
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);

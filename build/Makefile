@@ -142,6 +142,67 @@ my_app/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/build
 .PHONY : my_app/fast
 
+#=============================================================================
+# Target rules for targets named run
+
+# Build rule for target.
+run: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 run
+.PHONY : run
+
+# fast build rule for target.
+run/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run.dir/build.make CMakeFiles/run.dir/build
+.PHONY : run/fast
+
+camera.o: camera.cpp.o
+.PHONY : camera.o
+
+# target to build an object file
+camera.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/camera.cpp.o
+.PHONY : camera.cpp.o
+
+camera.i: camera.cpp.i
+.PHONY : camera.i
+
+# target to preprocess a source file
+camera.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/camera.cpp.i
+.PHONY : camera.cpp.i
+
+camera.s: camera.cpp.s
+.PHONY : camera.s
+
+# target to generate assembly for a file
+camera.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/camera.cpp.s
+.PHONY : camera.cpp.s
+
+collision_system.o: collision_system.cpp.o
+.PHONY : collision_system.o
+
+# target to build an object file
+collision_system.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/collision_system.cpp.o
+.PHONY : collision_system.cpp.o
+
+collision_system.i: collision_system.cpp.i
+.PHONY : collision_system.i
+
+# target to preprocess a source file
+collision_system.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/collision_system.cpp.i
+.PHONY : collision_system.cpp.i
+
+collision_system.s: collision_system.cpp.s
+.PHONY : collision_system.s
+
+# target to generate assembly for a file
+collision_system.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/collision_system.cpp.s
+.PHONY : collision_system.cpp.s
+
 external/glad/src/glad.o: external/glad/src/glad.c.o
 .PHONY : external/glad/src/glad.o
 
@@ -165,6 +226,30 @@ external/glad/src/glad.s: external/glad/src/glad.c.s
 external/glad/src/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/glad.dir/build.make CMakeFiles/glad.dir/external/glad/src/glad.c.s
 .PHONY : external/glad/src/glad.c.s
+
+input_manager.o: input_manager.cpp.o
+.PHONY : input_manager.o
+
+# target to build an object file
+input_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/input_manager.cpp.o
+.PHONY : input_manager.cpp.o
+
+input_manager.i: input_manager.cpp.i
+.PHONY : input_manager.i
+
+# target to preprocess a source file
+input_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/input_manager.cpp.i
+.PHONY : input_manager.cpp.i
+
+input_manager.s: input_manager.cpp.s
+.PHONY : input_manager.s
+
+# target to generate assembly for a file
+input_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/input_manager.cpp.s
+.PHONY : input_manager.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -238,6 +323,30 @@ model.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/model.cpp.s
 .PHONY : model.cpp.s
 
+primitive_generator.o: primitive_generator.cpp.o
+.PHONY : primitive_generator.o
+
+# target to build an object file
+primitive_generator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/primitive_generator.cpp.o
+.PHONY : primitive_generator.cpp.o
+
+primitive_generator.i: primitive_generator.cpp.i
+.PHONY : primitive_generator.i
+
+# target to preprocess a source file
+primitive_generator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/primitive_generator.cpp.i
+.PHONY : primitive_generator.cpp.i
+
+primitive_generator.s: primitive_generator.cpp.s
+.PHONY : primitive_generator.s
+
+# target to generate assembly for a file
+primitive_generator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/primitive_generator.cpp.s
+.PHONY : primitive_generator.cpp.s
+
 shader.o: shader.cpp.o
 .PHONY : shader.o
 
@@ -262,6 +371,30 @@ shader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/shader.cpp.s
 .PHONY : shader.cpp.s
 
+text_renderer.o: text_renderer.cpp.o
+.PHONY : text_renderer.o
+
+# target to build an object file
+text_renderer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/text_renderer.cpp.o
+.PHONY : text_renderer.cpp.o
+
+text_renderer.i: text_renderer.cpp.i
+.PHONY : text_renderer.i
+
+# target to preprocess a source file
+text_renderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/text_renderer.cpp.i
+.PHONY : text_renderer.cpp.i
+
+text_renderer.s: text_renderer.cpp.s
+.PHONY : text_renderer.s
+
+# target to generate assembly for a file
+text_renderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_app.dir/build.make CMakeFiles/my_app.dir/text_renderer.cpp.s
+.PHONY : text_renderer.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -270,11 +403,21 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... run"
 	@echo "... glad"
 	@echo "... my_app"
+	@echo "... camera.o"
+	@echo "... camera.i"
+	@echo "... camera.s"
+	@echo "... collision_system.o"
+	@echo "... collision_system.i"
+	@echo "... collision_system.s"
 	@echo "... external/glad/src/glad.o"
 	@echo "... external/glad/src/glad.i"
 	@echo "... external/glad/src/glad.s"
+	@echo "... input_manager.o"
+	@echo "... input_manager.i"
+	@echo "... input_manager.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
@@ -284,9 +427,15 @@ help:
 	@echo "... model.o"
 	@echo "... model.i"
 	@echo "... model.s"
+	@echo "... primitive_generator.o"
+	@echo "... primitive_generator.i"
+	@echo "... primitive_generator.s"
 	@echo "... shader.o"
 	@echo "... shader.i"
 	@echo "... shader.s"
+	@echo "... text_renderer.o"
+	@echo "... text_renderer.i"
+	@echo "... text_renderer.s"
 .PHONY : help
 
 

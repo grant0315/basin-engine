@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/gh/batcave/opengl-testing/external/glad/include
+CXX_INCLUDES = -I/usr/include/freetype2 -I/home/gh/batcave/opengl-testing/include -I/home/gh/batcave/opengl-testing/external/nlohmann -I/home/gh/batcave/opengl-testing/external/glad/include
 
-CXX_FLAGS = 
+CXX_FLAGS = -O3 -DNDEBUG
 

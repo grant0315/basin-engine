@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = -I/home/gh/batcave/opengl-testing/external/glad/include
 
-C_FLAGS = 
+C_FLAGS = -O3 -DNDEBUG
 
