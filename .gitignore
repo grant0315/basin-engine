@@ -1,4 +1,5 @@
 build/
+assets/
 *.o
 *.a
 my_app
