@@ -34,7 +34,7 @@ public:
   Mesh(std::vector<Vertex> v, std::vector<unsigned int> i,
        std::vector<Texture> t, MeshColor c = MeshColor{{1.0f, 1.0f, 1.0f}});
 
-  std::vector<glm::vec3> getBoundingBox();
+  std::vector<glm::vec3> getAxisAlignedBoundingBox();
   glm::vec3 getMeshCenter();
 
   void Render();

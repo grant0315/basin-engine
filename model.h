@@ -3,12 +3,12 @@
 
 #include "mesh.h"
 #include <assimp/Importer.hpp>
+#include <assimp/matrix4x4.h>
 #include <assimp/postprocess.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 struct ModelTextures {
@@ -95,7 +95,8 @@ private:
   }
 
   void processNode(aiNode *node, const aiScene *scene, std::string dir);
-  Mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string dir);
+  Mesh processMesh(aiMesh *mesh, const aiScene *scene, std::string dir,
+                   const aiMatrix4x4 &transform = aiMatrix4x4());
 };
 
 #endif

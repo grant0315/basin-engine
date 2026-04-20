@@ -98,26 +98,27 @@ int main() {
   if (!scene.loadFromFile("scenes/main_hall.json")) {
     std::cout << "Failed to load scene, using fallback" << std::endl;
   }
-  
+
   // Get scene entities for collision and rendering
-  std::vector<Entity*> sceneEntities = scene.getEntities();
-  
+  std::vector<Entity *> sceneEntities = scene.getEntities();
+
   // Add scene entities to collision system
-  std::vector<Entity*> collisionEntities = {&player};
-  for (Entity* ent : sceneEntities) {
+  std::vector<Entity *> collisionEntities = {&player};
+  for (Entity *ent : sceneEntities) {
     if (ent->isCollidable()) {
       collisionEntities.push_back(ent);
     }
   }
-  
+
   CollisionSystem colSys = CollisionSystem(collisionEntities);
-  
+
   // Use spawn point from scene
   glm::vec3 spawnPoint = scene.getSpawnPoint();
   player.setPosition(spawnPoint);
 
   lastTime = glfwGetTime();
   double lastFrameTime = lastTime;
+  double lastFileCheckTime = lastTime;
 
   while (!glfwWindowShouldClose(window)) {
     // Calculate delta time
@@ -133,6 +134,24 @@ int main() {
       lastTime = currentTime;
     }
 
+    // Check for scene file changes every 1 second
+    if (currentTime - lastFileCheckTime >= 1.0) {
+      lastFileCheckTime = currentTime;
+      if (scene.checkForChanges()) {
+        scene.reload();
+        // Refresh entity and collision references
+        sceneEntities = scene.getEntities();
+        collisionEntities.clear();
+        collisionEntities.push_back(&player);
+        for (Entity *ent : sceneEntities) {
+          if (ent->isCollidable()) {
+            collisionEntities.push_back(ent);
+          }
+        }
+        colSys = CollisionSystem(collisionEntities);
+      }
+    }
+
     glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -146,24 +165,34 @@ int main() {
 
     // Check collision with all scene entities
     bool xAxisBlocked = false, yAxisBlocked = false, zAxisBlocked = false;
-    
-    for (Entity* ent : sceneEntities) {
-      if (!ent->isCollidable()) continue;
-      
+
+    for (Entity *ent : sceneEntities) {
+      if (!ent->isCollidable())
+        continue;
+
       AABB entAABB = ent->getAxisAlignedBoundingBox();
-      
-      glm::vec3 testPosX = glm::vec3(playerDesiredPosition.x, playerCurrentPosition.y, playerCurrentPosition.z);
-      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosX), entAABB)) {
+
+      glm::vec3 testPosX =
+          glm::vec3(playerDesiredPosition.x, playerCurrentPosition.y,
+                    playerCurrentPosition.z);
+      if (colSys.checkAABBCollision(
+              player.getAxisAlignedBoundingBoxAtPosition(testPosX), entAABB)) {
         xAxisBlocked = true;
       }
-      
-      glm::vec3 testPosY = glm::vec3(playerCurrentPosition.x, playerDesiredPosition.y, playerCurrentPosition.z);
-      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosY), entAABB)) {
+
+      glm::vec3 testPosY =
+          glm::vec3(playerCurrentPosition.x, playerDesiredPosition.y,
+                    playerCurrentPosition.z);
+      if (colSys.checkAABBCollision(
+              player.getAxisAlignedBoundingBoxAtPosition(testPosY), entAABB)) {
         yAxisBlocked = true;
       }
-      
-      glm::vec3 testPosZ = glm::vec3(playerCurrentPosition.x, playerCurrentPosition.y, playerDesiredPosition.z);
-      if (colSys.checkAABBCollision(player.getAxisAlignedBoundingBoxAtPosition(testPosZ), entAABB)) {
+
+      glm::vec3 testPosZ =
+          glm::vec3(playerCurrentPosition.x, playerCurrentPosition.y,
+                    playerDesiredPosition.z);
+      if (colSys.checkAABBCollision(
+              player.getAxisAlignedBoundingBoxAtPosition(testPosZ), entAABB)) {
         zAxisBlocked = true;
       }
     }
@@ -197,7 +226,7 @@ int main() {
     shader.setUniform("projection", projection);
 
     // Draw scene entities
-    for (Entity* ent : sceneEntities) {
+    for (Entity *ent : sceneEntities) {
       ent->Draw(shader);
     }
 

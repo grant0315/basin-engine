@@ -5,11 +5,46 @@
 
 Scene::Scene() : m_name(""), m_camera({glm::vec3(0, 10, 20), 45.0f}), m_spawnPoint(glm::vec3(0, 5, 0)) {}
 
+void Scene::cleanup() {
+  for (Entity* ent : m_entities) {
+    delete ent;
+  }
+  m_entities.clear();
+}
+
+bool Scene::checkForChanges() {
+  try {
+    auto currentModTime = std::filesystem::last_write_time(m_filepath);
+    if (currentModTime != m_lastModifiedTime) {
+      m_lastModifiedTime = currentModTime;
+      return true;
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    std::cout << "ERROR: Could not check file: " << e.what() << std::endl;
+  }
+  return false;
+}
+
+bool Scene::reload() {
+  std::cout << "Reloading scene from: " << m_filepath << std::endl;
+  cleanup();
+  return loadFromFile(m_filepath);
+}
+
 bool Scene::loadFromFile(const std::string& filepath) {
+  m_filepath = filepath;
+
   std::ifstream file(filepath);
   if (!file.is_open()) {
     std::cout << "ERROR: Could not open scene file: " << filepath << std::endl;
     return false;
+  }
+
+  // Track file modification time
+  try {
+    m_lastModifiedTime = std::filesystem::last_write_time(filepath);
+  } catch (const std::filesystem::filesystem_error& e) {
+    std::cout << "WARNING: Could not get file mod time: " << e.what() << std::endl;
   }
 
   try {

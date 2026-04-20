@@ -45,11 +45,11 @@ void Mesh::setupMesh() {
 }
 
 glm::vec3 Mesh::getMeshCenter() {
-  std::vector<glm::vec3> boundingBox = getBoundingBox();
+  std::vector<glm::vec3> boundingBox = getAxisAlignedBoundingBox();
   return (boundingBox[0] + boundingBox[1]) / 2.0f;
 }
 
-std::vector<glm::vec3> Mesh::getBoundingBox() {
+std::vector<glm::vec3> Mesh::getAxisAlignedBoundingBox() {
   std::vector<glm::vec3> boundingBox;
 
   glm::vec3 minPos = vertices[0].Position;

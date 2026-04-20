@@ -21,7 +21,7 @@
       "name": "shop",
       "type": "model",
       "model": "assets/low-poly-shop/source/shop_1.fbx",
-      "position": [0, 0, -20],
+      "position": [0, 10, -200],
       "rotation": [0, 0, 0],
       "scale": [0.03, 0.03, 0.03],
       "textures_folder": "assets/low-poly-shop/textures",
@@ -32,6 +32,15 @@
         "roughness": "shop_1_shop_1_Roughness.png"
       },
       "is_collidable": true
+    },
+    {
+      "name": "warehouse",
+      "type": "model",
+      "model": "assets/warehouse.glb",
+      "position": [0, 10, 0],
+      "rotation": [0, 0, 0],
+      "scale": [3, 3, 3],
+      "is_collidable": false
     }
   ]
 }
