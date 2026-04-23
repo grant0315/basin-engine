@@ -96,10 +96,22 @@ unsigned int loadTextureFromFile(const char *path) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   // Upload texture data
-  GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+  GLenum format;
+  if (nrChannels == 1)
+    format = GL_RED;
+  else if (nrChannels == 3)
+    format = GL_RGB;
+  else
+    format = GL_RGBA;
   glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                GL_UNSIGNED_BYTE, data);
   glGenerateMipmap(GL_TEXTURE_2D);
+
+  // For single-channel textures, swizzle so .rgb all read the red channel
+  if (nrChannels == 1) {
+    GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+  }
 
   stbi_image_free(data);
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -158,14 +170,25 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, std::string dir,
       vertex.Normal = glm::vec3(norm.x, norm.y, norm.z);
     }
 
-    // Texture coordinates (assimpe supports up to 8, we usually just want index
-    // 0)
+    // Texture coordinates (assimp supports up to 8, we usually just want index 0)
     if (mesh->mTextureCoords[0]) {
       vertex.TexCoords =
           glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
     } else {
       vertex.TexCoords = glm::vec2(0.0f, 0.0f);
     }
+
+    // Tangent and bitangent (computed by aiProcess_CalcTangentSpace)
+    if (mesh->HasTangentsAndBitangents()) {
+      aiVector3D tan = mesh->mTangents[i];
+      vertex.Tangent = glm::vec3(tan.x, tan.y, tan.z);
+      aiVector3D bitan = mesh->mBitangents[i];
+      vertex.Bitangent = glm::vec3(bitan.x, bitan.y, bitan.z);
+    } else {
+      vertex.Tangent = glm::vec3(0.0f);
+      vertex.Bitangent = glm::vec3(0.0f);
+    }
+
     vertices.push_back(vertex);
   }
 
@@ -207,38 +230,87 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene, std::string dir,
       meshColor.baseColor =
           glm::vec3(diffuseColor.r, diffuseColor.g, diffuseColor.b);
 
-      // Load textures from customTextures folder if provided (e.g. FBX with external textures)
-      if (!customTextures.baseColor.empty()) {
+      // Helper: try loading a texture from custom path, then embedded, then
+      // file-on-disk for a given assimp texture type.
+      auto loadMaterialTexture = [&](const std::string &customPath,
+                                     aiTextureType aiType,
+                                     aiTextureType aiFallbackType,
+                                     const std::string &typeName) {
         std::string texFolder =
             texturesFolder.empty() ? (dir + "/textures") : texturesFolder;
-        std::string baseColorPath = texFolder + "/" + customTextures.baseColor;
-        unsigned int textureID = loadTextureFromFile(baseColorPath.c_str());
-        if (textureID != 0) {
-          Texture tex;
-          tex.id = textureID;
-          tex.type = "texture_diffuse";
-          tex.path = baseColorPath;
-          textures.push_back(tex);
-        }
-      }
 
-      // Load embedded textures (e.g. GLB files with packed textures)
-      if (textures.empty()) {
-        aiString texPath;
-        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-          const aiTexture *embeddedTex = scene->GetEmbeddedTexture(texPath.C_Str());
-          if (embeddedTex) {
-            unsigned int textureID = loadTextureFromMemory(embeddedTex);
-            if (textureID != 0) {
-              Texture tex;
-              tex.id = textureID;
-              tex.type = "texture_diffuse";
-              tex.path = texPath.C_Str();
-              textures.push_back(tex);
-            }
+        // Helper: check cache before loading, store result in cache
+        auto cachedLoad = [&](const std::string &key,
+                              auto loadFn) -> unsigned int {
+          auto it = m_textureCache.find(key);
+          if (it != m_textureCache.end()) {
+            return it->second;
+          }
+          unsigned int id = loadFn();
+          if (id != 0) {
+            m_textureCache[key] = id;
+          }
+          return id;
+        };
+
+        // 1. Custom external path (e.g. FBX with separate texture files)
+        if (!customPath.empty()) {
+          std::string fullPath = texFolder + "/" + customPath;
+          unsigned int id = cachedLoad(fullPath, [&]() {
+            return loadTextureFromFile(fullPath.c_str());
+          });
+          if (id != 0) {
+            textures.push_back({id, typeName, fullPath});
+            return;
           }
         }
-      }
+
+        // 2. Embedded or referenced texture from the model file
+        aiString texPath;
+        if (material->GetTexture(aiType, 0, &texPath) == AI_SUCCESS ||
+            (aiFallbackType != aiType &&
+             material->GetTexture(aiFallbackType, 0, &texPath) == AI_SUCCESS)) {
+          std::string key = std::string(texPath.C_Str());
+
+          // Try embedded first (GLB)
+          const aiTexture *embedded =
+              scene->GetEmbeddedTexture(texPath.C_Str());
+          if (embedded) {
+            unsigned int id = cachedLoad(key, [&]() {
+              return loadTextureFromMemory(embedded);
+            });
+            if (id != 0) {
+              textures.push_back({id, typeName, key});
+              return;
+            }
+          }
+          // Try as file path relative to model directory
+          std::string filePath = dir + "/" + texPath.C_Str();
+          unsigned int id = cachedLoad(filePath, [&]() {
+            return loadTextureFromFile(filePath.c_str());
+          });
+          if (id != 0) {
+            textures.push_back({id, typeName, filePath});
+          }
+        }
+      };
+
+      // Diffuse / base color
+      loadMaterialTexture(customTextures.baseColor, aiTextureType_DIFFUSE,
+                          aiTextureType_DIFFUSE, "texture_diffuse");
+
+      // Normal map (some formats store normals under HEIGHT)
+      loadMaterialTexture(customTextures.normal, aiTextureType_NORMALS,
+                          aiTextureType_HEIGHT, "texture_normal");
+
+      // Height / displacement map
+      loadMaterialTexture(customTextures.height, aiTextureType_DISPLACEMENT,
+                          aiTextureType_DISPLACEMENT, "texture_height");
+
+      // Roughness map (some formats use SHININESS for this)
+      loadMaterialTexture(customTextures.roughness,
+                          aiTextureType_DIFFUSE_ROUGHNESS,
+                          aiTextureType_SHININESS, "texture_roughness");
 
       return Mesh(vertices, indices, textures, meshColor);
     }

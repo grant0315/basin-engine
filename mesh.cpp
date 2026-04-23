@@ -34,9 +34,17 @@ void Mesh::setupMesh() {
                         (void *)(3 * sizeof(float)));
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (void *)(6 * sizeof(float)));
+  // Tangent
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, Tangent));
+  // Bitangent
+  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, Bitangent));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glEnableVertexAttribArray(3);
+  glEnableVertexAttribArray(4);
 
   // Bind and upload indicies to EBO
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -45,12 +53,12 @@ void Mesh::setupMesh() {
 }
 
 glm::vec3 Mesh::getMeshCenter() {
-  std::vector<glm::vec3> boundingBox = getAxisAlignedBoundingBox();
-  return (boundingBox[0] + boundingBox[1]) / 2.0f;
+  return getAxisAlignedBoundingBox().center;
 }
 
-std::vector<glm::vec3> Mesh::getAxisAlignedBoundingBox() {
-  std::vector<glm::vec3> boundingBox;
+AABB Mesh::getAxisAlignedBoundingBox() {
+  if (m_aabbCached)
+    return m_cachedAABB;
 
   glm::vec3 minPos = vertices[0].Position;
   glm::vec3 maxPos = vertices[0].Position;
@@ -59,10 +67,14 @@ std::vector<glm::vec3> Mesh::getAxisAlignedBoundingBox() {
     maxPos = glm::max(maxPos, v.Position);
   }
 
-  boundingBox.push_back(minPos);
-  boundingBox.push_back(maxPos);
-
-  return boundingBox;
+  AABB aabb;
+  aabb.center = (minPos + maxPos) / 2.0f;
+  aabb.xHalfExtent = (maxPos.x - minPos.x) / 2.0f;
+  aabb.yHalfExtent = (maxPos.y - minPos.y) / 2.0f;
+  aabb.zHalfExtent = (maxPos.z - minPos.z) / 2.0f;
+  m_cachedAABB = aabb;
+  m_aabbCached = true;
+  return m_cachedAABB;
 }
 
 void Mesh::Render() {

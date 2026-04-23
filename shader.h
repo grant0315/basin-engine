@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
+#include <unordered_map>
 
 class Shader {
 public:
@@ -25,13 +26,14 @@ private:
   void CreateShaderProgram();
   void CleanupShaders();
 
-  // Set uniforms
+  GLint getUniformLocation(const std::string &name);
 
   std::string m_vertexShaderSource;
   std::string m_fragmentShaderSource;
   unsigned int m_vertexShader;
   unsigned int m_fragmentShader;
   unsigned int m_shaderProgram;
+  std::unordered_map<std::string, GLint> m_uniformLocationCache;
 };
 
 #endif

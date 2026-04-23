@@ -27,8 +27,9 @@ public:
 
     // Only jump if pressed NOW and wasn't pressed LAST frame (prevents holding
     // space)
-    if (jumpPressed && !m_wasJumpPressed && m_verticalVelocity >= 0.0f) {
+    if (jumpPressed && !m_wasJumpPressed && m_grounded) {
       m_verticalVelocity = m_jumpVelocity;
+      m_grounded = false;
     }
 
     // Track jump state for next frame
@@ -58,7 +59,10 @@ public:
   glm::mat4 getViewMatrix() { return m_camera.GetViewMatrix(); };
 
   glm::vec3 getDesiredPosition() { return m_desiredPosition; }
-  void resetVerticalVelocity() { m_verticalVelocity = 0.0f; }
+  void resetVerticalVelocity() {
+    m_verticalVelocity = 0.0f;
+    m_grounded = true;
+  }
   Camera *getCamera() { return &m_camera; }
   InputManager *getInputManager() { return &m_inputManager; }
 
@@ -74,4 +78,5 @@ private:
   float m_verticalVelocity = 0.0f;
   float m_gravConstant = 20.0f;
   bool m_wasJumpPressed = false;
+  bool m_grounded = false;
 };

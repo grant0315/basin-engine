@@ -319,25 +319,17 @@ CMakeFiles/my_app.dir/main.cpp.o: \
  /usr/include/c++/15.2.1/bits/istream.tcc \
  /usr/include/c++/15.2.1/bits/sstream.tcc \
  /usr/include/c++/15.2.1/iostream \
- /home/gh/batcave/opengl-testing/camera.h /usr/include/glm/glm.hpp \
- /usr/include/c++/15.2.1/climits \
+ /home/gh/batcave/opengl-testing/collision_system.h \
+ /home/gh/batcave/opengl-testing/entity.h \
+ /home/gh/batcave/opengl-testing/model.h \
+ /home/gh/batcave/opengl-testing/mesh.h /usr/include/assimp/Importer.hpp \
+ /usr/include/assimp/types.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/limits.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/syslimits.h \
  /usr/include/limits.h /usr/include/bits/posix1_lim.h \
  /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
  /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
- /usr/include/bits/uio_lim.h /usr/include/c++/15.2.1/cfloat \
- /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
- /usr/include/glm/fwd.hpp /usr/include/glm/packing.hpp \
- /usr/include/glm/detail/func_packing.inl \
- /usr/include/glm/detail/type_half.hpp \
- /usr/include/glm/detail/type_half.inl /usr/include/glm/integer.hpp \
- /usr/include/glm/detail/func_integer.inl \
- /home/gh/batcave/opengl-testing/collision_system.h \
- /home/gh/batcave/opengl-testing/entity.h \
- /home/gh/batcave/opengl-testing/model.h \
- /home/gh/batcave/opengl-testing/mesh.h /usr/include/assimp/Importer.hpp \
- /usr/include/assimp/types.h /usr/include/string.h /usr/include/strings.h \
+ /usr/include/bits/uio_lim.h /usr/include/string.h /usr/include/strings.h \
  /usr/include/assimp/defs.h /usr/include/assimp/config.h \
  /usr/include/assimp/vector2.h /usr/include/assimp/vector3.h \
  /usr/include/assimp/color4.h /usr/include/assimp/matrix3x3.h \
@@ -360,7 +352,15 @@ CMakeFiles/my_app.dir/main.cpp.o: \
  /usr/include/c++/15.2.1/bits/unordered_set.h /usr/include/assimp/light.h \
  /usr/include/assimp/camera.h /usr/include/assimp/material.h \
  /usr/include/assimp/material.inl /usr/include/assimp/anim.h \
- /usr/include/assimp/metadata.h /usr/include/assimp/postprocess.h \
+ /usr/include/assimp/metadata.h /usr/include/glm/glm.hpp \
+ /usr/include/c++/15.2.1/climits /usr/include/c++/15.2.1/cfloat \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/float.h \
+ /usr/include/glm/fwd.hpp /usr/include/glm/packing.hpp \
+ /usr/include/glm/detail/func_packing.inl \
+ /usr/include/glm/detail/type_half.hpp \
+ /usr/include/glm/detail/type_half.inl /usr/include/glm/integer.hpp \
+ /usr/include/glm/detail/func_integer.inl \
+ /usr/include/assimp/postprocess.h \
  /home/gh/batcave/opengl-testing/shader.h \
  /usr/include/glm/gtc/matrix_inverse.hpp \
  /usr/include/glm/detail/setup.hpp \
@@ -387,8 +387,9 @@ CMakeFiles/my_app.dir/main.cpp.o: \
  /usr/include/glm/ext/quaternion_transform.inl \
  /usr/include/glm/gtc/quaternion.inl /usr/include/glm/gtc/epsilon.hpp \
  /usr/include/glm/gtc/epsilon.inl \
- /home/gh/batcave/opengl-testing/input_manager.h \
  /home/gh/batcave/opengl-testing/player.h \
+ /home/gh/batcave/opengl-testing/camera.h \
+ /home/gh/batcave/opengl-testing/input_manager.h \
  /home/gh/batcave/opengl-testing/primitive_generator.h \
  /home/gh/batcave/opengl-testing/scene.h \
  /home/gh/batcave/opengl-testing/external/nlohmann/json.hpp \

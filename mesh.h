@@ -12,6 +12,8 @@ struct Vertex {
   glm::vec3 Position;
   glm::vec3 Normal;
   glm::vec2 TexCoords;
+  glm::vec3 Tangent;
+  glm::vec3 Bitangent;
 };
 
 struct Texture {
@@ -24,6 +26,13 @@ struct MeshColor {
   glm::vec3 baseColor;
 };
 
+struct AABB {
+  glm::vec3 center;
+  float xHalfExtent;
+  float yHalfExtent;
+  float zHalfExtent;
+};
+
 class Mesh {
 public:
   std::vector<Vertex> vertices;
@@ -34,7 +43,7 @@ public:
   Mesh(std::vector<Vertex> v, std::vector<unsigned int> i,
        std::vector<Texture> t, MeshColor c = MeshColor{{1.0f, 1.0f, 1.0f}});
 
-  std::vector<glm::vec3> getAxisAlignedBoundingBox();
+  AABB getAxisAlignedBoundingBox();
   glm::vec3 getMeshCenter();
 
   void Render();
@@ -47,6 +56,8 @@ public:
 
 private:
   unsigned int VAO, VBO, EBO;
+  AABB m_cachedAABB;
+  bool m_aabbCached = false;
   void setupMesh();
 };
 

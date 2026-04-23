@@ -312,13 +312,17 @@ CMakeFiles/my_app.dir/camera.cpp.o: /home/gh/batcave/opengl-testing/camera.cpp \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/syslimits.h
 
 CMakeFiles/my_app.dir/collision_system.cpp.o: /home/gh/batcave/opengl-testing/collision_system.cpp \
+  /home/gh/batcave/opengl-testing/camera.h \
   /home/gh/batcave/opengl-testing/collision_system.h \
   /home/gh/batcave/opengl-testing/entity.h \
   /home/gh/batcave/opengl-testing/external/glad/include/KHR/khrplatform.h \
   /home/gh/batcave/opengl-testing/external/glad/include/glad/glad.h \
+  /home/gh/batcave/opengl-testing/input_manager.h \
   /home/gh/batcave/opengl-testing/mesh.h \
   /home/gh/batcave/opengl-testing/model.h \
+  /home/gh/batcave/opengl-testing/player.h \
   /home/gh/batcave/opengl-testing/shader.h \
+  /usr/include/GLFW/glfw3.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/bitsperlong.h \
   /usr/include/asm-generic/errno-base.h \
@@ -5546,6 +5550,8 @@ CMakeFiles/my_app.dir/input_manager.cpp.o:
 
 /home/gh/batcave/opengl-testing/shader.h:
 
+/usr/include/GLFW/glfw3.h:
+
 /usr/include/asm-generic/errno-base.h:
 
 /usr/include/c++/15.2.1/bits/slice_array.h:
@@ -5627,6 +5633,10 @@ CMakeFiles/my_app.dir/main.cpp.o:
 /usr/include/assimp/postprocess.h:
 
 /usr/include/c++/15.2.1/x86_64-pc-linux-gnu/bits/gthr.h:
+
+/home/gh/batcave/opengl-testing/player.h:
+
+/usr/include/assimp/quaternion.inl:
 
 /usr/include/assimp/scene.h:
 
@@ -5840,15 +5850,9 @@ CMakeFiles/my_app.dir/main.cpp.o:
 
 /home/gh/batcave/opengl-testing/input_manager.cpp:
 
-/usr/include/GLFW/glfw3.h:
-
 /usr/include/c++/15.2.1/any:
 
 /home/gh/batcave/opengl-testing/main.cpp:
-
-/usr/include/assimp/quaternion.inl:
-
-/home/gh/batcave/opengl-testing/player.h:
 
 /usr/include/c++/15.2.1/backward/auto_ptr.h:
 

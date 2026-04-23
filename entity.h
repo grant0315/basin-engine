@@ -12,13 +12,6 @@
 #include <iostream>
 #include <string>
 
-struct AABB {
-  glm::vec3 center;
-  float xHalfExtent;
-  float yHalfExtent;
-  float zHalfExtent;
-};
-
 class Entity {
 public:
   Entity(const std::string &entName, Model *model, bool isCollidable) {
@@ -98,6 +91,44 @@ public:
     return tempAABB;
   }
 
+  // Returns one AABB per mesh, transformed to world space (cached until dirty)
+  const std::vector<AABB> &getMeshAABBs() {
+    if (!m_dirtyAABB && !m_cachedMeshAABBs.empty()) {
+      return m_cachedMeshAABBs;
+    }
+
+    m_cachedMeshAABBs.clear();
+    glm::mat4 modelMatrix = getModelMatrix();
+
+    for (unsigned int i = 0; i < m_model->meshes.size(); i++) {
+      Mesh &mesh = m_model->meshes[i];
+      AABB meshAABB = mesh.getAxisAlignedBoundingBox();
+
+      // Transform center to world space
+      glm::vec4 worldCenter4 = modelMatrix * glm::vec4(meshAABB.center, 1.0f);
+
+      AABB aabb;
+      aabb.center = glm::vec3(worldCenter4);
+      aabb.xHalfExtent = meshAABB.xHalfExtent * m_scale.x;
+      aabb.yHalfExtent = meshAABB.yHalfExtent * m_scale.y;
+      aabb.zHalfExtent = meshAABB.zHalfExtent * m_scale.z;
+      m_cachedMeshAABBs.push_back(aabb);
+    }
+    m_dirtyAABB = false;
+    return m_cachedMeshAABBs;
+  }
+
+  // Returns per-mesh AABBs as if the entity were at a different position
+  std::vector<AABB> getMeshAABBsAtPosition(glm::vec3 pos) {
+    glm::vec3 offset = pos - m_position;
+    const std::vector<AABB> &cached = getMeshAABBs();
+    std::vector<AABB> aabbs(cached); // copy
+    for (auto &aabb : aabbs) {
+      aabb.center += offset;
+    }
+    return aabbs;
+  }
+
   glm::vec3 getPosition() const { return m_position; }
   glm::quat getRotation() const { return m_rotation; }
   glm::vec3 getScale() const { return m_scale; }
@@ -130,6 +161,14 @@ public:
 
   void setName(std::string name) { m_name = name; }
 
+  // Set base color on all meshes (RGB from vec4, alpha stored separately)
+  void setColor(glm::vec4 color) {
+    m_alpha = color.a;
+    for (auto &mesh : m_model->meshes) {
+      mesh.color.baseColor = glm::vec3(color.r, color.g, color.b);
+    }
+  }
+
   // --- Transform Operations ---
   // Rotates the entity aroudn a specific axis (i.e. glm::vec3(0, 1, 0) for y)
   void rotate(float angleDegrees, glm::vec3 axis) {
@@ -144,20 +183,45 @@ public:
     // 3. Render each mesh with its textures
     glm::mat4 modelMatrix = getModelMatrix();
     shader.setUniform("model", modelMatrix);
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
+    shader.setUniform("normalMatrix", normalMatrix);
 
     for (unsigned int i = 0; i < m_model->meshes.size(); i++) {
       Mesh &mesh = m_model->meshes[i];
 
-      // Set base color
+      // Set base color and alpha
       shader.setUniform("objectColor", mesh.GetColor());
+      shader.setUniform("objectAlpha", m_alpha);
 
-      // Bind texture if available
-      if (!mesh.textures.empty()) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mesh.textures[0].id);
-        shader.setUniform("hasTexture", true);
-      } else {
-        shader.setUniform("hasTexture", false);
+      // Reset texture flags
+      shader.setUniform("hasTexture", false);
+      shader.setUniform("hasNormalMap", false);
+      shader.setUniform("hasHeightMap", false);
+      shader.setUniform("hasRoughnessMap", false);
+
+      // Bind each texture to the correct unit by type
+      for (const Texture &tex : mesh.textures) {
+        if (tex.type == "texture_diffuse") {
+          glActiveTexture(GL_TEXTURE0);
+          glBindTexture(GL_TEXTURE_2D, tex.id);
+          shader.setUniform("texture_diffuse", 0);
+          shader.setUniform("hasTexture", true);
+        } else if (tex.type == "texture_normal") {
+          glActiveTexture(GL_TEXTURE1);
+          glBindTexture(GL_TEXTURE_2D, tex.id);
+          shader.setUniform("texture_normal", 1);
+          shader.setUniform("hasNormalMap", true);
+        } else if (tex.type == "texture_height") {
+          glActiveTexture(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_2D, tex.id);
+          shader.setUniform("texture_height", 2);
+          shader.setUniform("hasHeightMap", true);
+        } else if (tex.type == "texture_roughness") {
+          glActiveTexture(GL_TEXTURE3);
+          glBindTexture(GL_TEXTURE_2D, tex.id);
+          shader.setUniform("texture_roughness", 3);
+          shader.setUniform("hasRoughnessMap", true);
+        }
       }
 
       mesh.Render();
@@ -177,9 +241,11 @@ private:
 
   glm::vec3 m_position;
   glm::quat m_rotation;
+  float m_alpha = 1.0f;
   glm::vec3 m_scale;
 
-  // Axis-Aligned Bounding Box
+  // Axis-Aligned Bounding Boxes (cached)
+  std::vector<AABB> m_cachedMeshAABBs;
   AABB m_AABB;
 };
 

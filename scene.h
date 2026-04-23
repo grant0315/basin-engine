@@ -22,6 +22,9 @@ public:
   bool loadFromFile(const std::string& filepath);
   bool reload();
   bool checkForChanges();
+
+  // Check for file changes and reload if needed. Returns true if scene was reloaded.
+  bool hotReloadIfChanged();
   
   std::string getName() const { return m_name; }
   SceneCamera getCamera() const { return m_camera; }

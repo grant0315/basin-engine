@@ -15,32 +15,21 @@
       "thickness": 1,
       "position": [0, 0, 0],
       "scale": [1, 1, 1],
-      "is_collidable": true
+      "is_collidable": true,
+      "color": [10, 10, 10]
     },
     {
-      "name": "shop",
-      "type": "model",
-      "model": "assets/low-poly-shop/source/shop_1.fbx",
-      "position": [0, 10, -200],
-      "rotation": [0, 0, 0],
-      "scale": [0.03, 0.03, 0.03],
-      "textures_folder": "assets/low-poly-shop/textures",
-      "textures": {
-        "base_color": "shop_1_shop_1_BaseColor.png",
-        "normal": "shop_1_shop_1_Normal.png",
-        "height": "shop_1_shop_1_Height.png",
-        "roughness": "shop_1_shop_1_Roughness.png"
-      },
-      "is_collidable": true
-    },
-    {
-      "name": "warehouse",
-      "type": "model",
-      "model": "assets/warehouse.glb",
-      "position": [0, 10, 0],
-      "rotation": [0, 0, 0],
-      "scale": [3, 3, 3],
-      "is_collidable": false
+      "name": "right_wall",
+      "type": "primitive",
+      "primitive_type": "plane",
+      "width": 1000,
+      "depth": 50,
+      "thickness": 1,
+      "position": [10, 0, 0],
+      "scale": [1, 1, 1],
+      "rotation": [90, 0, 0],
+      "is_collidable": true,
+      "color": [40, 40, 40]
     }
   ]
 }

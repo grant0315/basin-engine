@@ -375,4 +375,8 @@ CMakeFiles/my_app.dir/collision_system.cpp.o: \
  /usr/include/glm/ext/quaternion_transform.hpp \
  /usr/include/glm/ext/quaternion_transform.inl \
  /usr/include/glm/gtc/quaternion.inl /usr/include/glm/gtc/epsilon.hpp \
- /usr/include/glm/gtc/epsilon.inl
+ /usr/include/glm/gtc/epsilon.inl \
+ /home/gh/batcave/opengl-testing/player.h \
+ /home/gh/batcave/opengl-testing/camera.h \
+ /home/gh/batcave/opengl-testing/input_manager.h \
+ /usr/include/GLFW/glfw3.h

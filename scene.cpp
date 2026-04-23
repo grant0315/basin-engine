@@ -25,6 +25,12 @@ bool Scene::checkForChanges() {
   return false;
 }
 
+bool Scene::hotReloadIfChanged() {
+  if (!checkForChanges())
+    return false;
+  return reload();
+}
+
 bool Scene::reload() {
   std::cout << "Reloading scene from: " << m_filepath << std::endl;
   cleanup();
@@ -123,6 +129,19 @@ bool Scene::loadFromFile(const std::string& filepath) {
         glm::vec3 scaleVec(scale[0], scale[1], scale[2]);
 
         Entity* entity = new Entity(name, model, position, rotation, scaleVec, isCollidable);
+
+        // Override base color from JSON if provided (RGBA 0-255)
+        if (ent.contains("color")) {
+          auto& c = ent["color"];
+          if (c.is_array() && c.size() >= 3) {
+            float r = c[0].get<float>() / 255.0f;
+            float g = c[1].get<float>() / 255.0f;
+            float b = c[2].get<float>() / 255.0f;
+            float a = (c.size() >= 4) ? c[3].get<float>() / 255.0f : 1.0f;
+            entity->setColor(glm::vec4(r, g, b, a));
+          }
+        }
+
         m_entities.push_back(entity);
 
         std::cout << "Loaded entity: " << name << " (" << type << ")" << std::endl;
