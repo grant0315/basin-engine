@@ -27,9 +27,19 @@ public:
   bool hotReloadIfChanged();
   
   std::string getName() const { return m_name; }
+  void setName(const std::string& name) { m_name = name; }
+
   SceneCamera getCamera() const { return m_camera; }
   glm::vec3 getSpawnPoint() const { return m_spawnPoint; }
+  void setSpawnPoint(const glm::vec3& point) { m_spawnPoint = point; }
+
   const std::vector<Entity*>& getEntities() const { return m_entities; }
+  std::vector<Entity*>& getEntities() { return m_entities; }
+
+  void addEntity(Entity* entity) { m_entities.push_back(entity); }
+  void removeEntity(size_t index);
+
+  bool saveToFile(const std::string& filepath);
 
 private:
   void cleanup();

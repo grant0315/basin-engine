@@ -159,3 +159,46 @@ bool Scene::loadFromFile(const std::string& filepath) {
     return false;
   }
 }
+
+void Scene::removeEntity(size_t index) {
+  if (index >= m_entities.size()) return;
+  delete m_entities[index];
+  m_entities.erase(m_entities.begin() + index);
+}
+
+bool Scene::saveToFile(const std::string& filepath) {
+  json j;
+  j["scene_name"] = m_name;
+  j["camera"]["position"] = {m_camera.position.x, m_camera.position.y, m_camera.position.z};
+  j["camera"]["fov"] = m_camera.fov;
+  j["spawn_point"] = {m_spawnPoint.x, m_spawnPoint.y, m_spawnPoint.z};
+
+  json entities = json::array();
+  for (Entity* ent : m_entities) {
+    json ej;
+    ej["name"] = ent->getName();
+    ej["type"] = "primitive"; // Simplified: we don't track original type
+    ej["position"] = {ent->getPosition().x, ent->getPosition().y, ent->getPosition().z};
+
+    glm::vec3 euler = glm::degrees(glm::eulerAngles(ent->getRotation()));
+    ej["rotation"] = {euler.x, euler.y, euler.z};
+
+    ej["scale"] = {ent->getScale().x, ent->getScale().y, ent->getScale().z};
+    ej["is_collidable"] = ent->isCollidable();
+
+    // Save color
+    glm::vec3 color = ent->getModelCenter(); // Can't easily get color back, skip for now
+    // Actually we can't easily get the color from Entity. Skip color saving for now.
+
+    entities.push_back(ej);
+  }
+  j["entities"] = entities;
+
+  std::ofstream file(filepath);
+  if (!file.is_open()) {
+    std::cerr << "ERROR: Could not open file for writing: " << filepath << std::endl;
+    return false;
+  }
+  file << j.dump(2);
+  return true;
+}

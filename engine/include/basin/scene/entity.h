@@ -169,6 +169,12 @@ public:
     }
   }
 
+  glm::vec4 getColor() const {
+    if (m_model->meshes.empty()) return glm::vec4(1.0f);
+    glm::vec3 c = m_model->meshes[0].color.baseColor;
+    return glm::vec4(c.r, c.g, c.b, m_alpha);
+  }
+
   // --- Transform Operations ---
   // Rotates the entity aroudn a specific axis (i.e. glm::vec3(0, 1, 0) for y)
   void rotate(float angleDegrees, glm::vec3 axis) {

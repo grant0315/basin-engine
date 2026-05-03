@@ -13,3 +13,4 @@ compile_commands.json
 CMakeCache.txt
 CMakeLists.txt.user.opencode/
 shared/fonts/*.ttf
+imgui.ini

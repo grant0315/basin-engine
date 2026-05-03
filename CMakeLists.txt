@@ -31,6 +31,8 @@ endif()
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(glm QUIET CONFIG)
 if(glm_FOUND)
@@ -55,3 +57,4 @@ target_include_directories(glad PUBLIC third_party/glad/include)
 
 add_subdirectory(engine)
 add_subdirectory(game)
+add_subdirectory(editor)

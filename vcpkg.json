@@ -4,6 +4,7 @@
     "freetype",
     "glfw3",
     "glm",
+    "imgui",
     "nlohmann-json"
   ]
 }

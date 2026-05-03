@@ -25,6 +25,7 @@ public:
         primGen.generateCuboid(1.0f, 1.0f, 3.0f), true,
         glm::vec3(0.0f, 3.0f, 0.0f));
     m_player->getInputManager()->SetupCallbacks(window.getNativeWindow());
+    window.setCursorEnabled(false);
 
     // Text renderer
     m_textRenderer =

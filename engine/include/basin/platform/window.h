@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 namespace basin {
 
@@ -19,6 +20,11 @@ public:
   int getHeight() const { return m_height; }
 
   GLFWwindow *getNativeWindow() { return m_window; }
+
+  void setCursorEnabled(bool enabled);
+  bool isKeyPressed(int key) const;
+  bool isMouseButtonPressed(int button) const;
+  glm::dvec2 getCursorPos() const;
 
 private:
   GLFWwindow *m_window = nullptr;
