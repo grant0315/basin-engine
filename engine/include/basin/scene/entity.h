@@ -11,6 +11,17 @@
 #include <glm/gtc/quaternion.hpp>
 #include <iostream>
 #include <string>
+#include <optional>
+
+struct PrimitiveParams {
+  std::string primitiveType;
+  float width = 0.0f;
+  float depth = 0.0f;
+  float thickness = 0.0f;
+  float size = 0.0f;
+  float length = 0.0f;
+  float height = 0.0f;
+};
 
 class Entity {
 public:
@@ -140,6 +151,10 @@ public:
   bool isVisible() const { return m_visible; }
   void setVisible(bool visible) { m_visible = visible; }
 
+  void setPrimitiveParams(const PrimitiveParams& params) { m_primitiveParams = params; }
+  bool hasPrimitiveParams() const { return m_primitiveParams.has_value(); }
+  const PrimitiveParams& getPrimitiveParams() const { return m_primitiveParams.value(); }
+
   // --- Setters ---
   void setPosition(glm::vec3 pos) {
     m_position = pos;
@@ -260,6 +275,8 @@ private:
   // Axis-Aligned Bounding Boxes (cached)
   std::vector<AABB> m_cachedMeshAABBs;
   AABB m_AABB;
+
+  std::optional<PrimitiveParams> m_primitiveParams;
 };
 
 #endif

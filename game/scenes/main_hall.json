@@ -14,6 +14,7 @@
         120,
         140
       ],
+      "depth": 50.0,
       "is_collidable": true,
       "name": "floor",
       "position": [
@@ -21,6 +22,7 @@
         0.0,
         0.0
       ],
+      "primitive_type": "plane",
       "rotation": [
         0.0,
         -0.0,
@@ -31,8 +33,10 @@
         1.0,
         1.0
       ],
+      "thickness": 1.0,
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 50.0
     },
     {
       "color": [
@@ -40,6 +44,7 @@
         100,
         110
       ],
+      "depth": 50.0,
       "is_collidable": true,
       "name": "ceiling",
       "position": [
@@ -47,6 +52,7 @@
         20.0,
         0.0
       ],
+      "primitive_type": "plane",
       "rotation": [
         -180.0,
         -0.0,
@@ -57,8 +63,10 @@
         1.0,
         1.0
       ],
+      "thickness": 1.0,
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 50.0
     },
     {
       "color": [
@@ -66,13 +74,16 @@
         130,
         120
       ],
+      "height": 20.0,
       "is_collidable": true,
+      "length": 50.0,
       "name": "back_wall",
       "position": [
         0.0,
         10.0,
         -25.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -84,7 +95,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": false
+      "visible": true,
+      "width": 1.0
     },
     {
       "color": [
@@ -92,13 +104,16 @@
         130,
         120
       ],
+      "height": 20.0,
       "is_collidable": true,
+      "length": 50.0,
       "name": "front_wall",
       "position": [
         0.0,
         10.0,
         25.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -110,7 +125,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": false
+      "visible": true,
+      "width": 1.0
     },
     {
       "color": [
@@ -118,13 +134,16 @@
         140,
         120
       ],
+      "height": 20.0,
       "is_collidable": true,
+      "length": 1.0,
       "name": "left_wall",
       "position": [
         -25.0,
         10.0,
         0.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -136,7 +155,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": false
+      "visible": true,
+      "width": 50.0
     },
     {
       "color": [
@@ -144,13 +164,16 @@
         140,
         120
       ],
+      "height": 20.0,
       "is_collidable": true,
+      "length": 1.0,
       "name": "right_wall",
       "position": [
         25.0,
         10.0,
         0.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -162,7 +185,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": false
+      "visible": true,
+      "width": 50.0
     },
     {
       "color": [
@@ -177,6 +201,7 @@
         2.0,
         -10.0
       ],
+      "primitive_type": "cube",
       "rotation": [
         0.0,
         -0.0,
@@ -187,6 +212,7 @@
         1.0,
         1.0
       ],
+      "size": 4.0,
       "type": "primitive",
       "visible": true
     },
@@ -196,13 +222,16 @@
         220,
         60
       ],
+      "height": 2.0,
       "is_collidable": true,
+      "length": 6.0,
       "name": "green_platform",
       "position": [
         8.0,
-        6.800000190734863,
+        4.099999904632568,
         -5.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -214,7 +243,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 6.0
     },
     {
       "color": [
@@ -222,13 +252,16 @@
         60,
         220
       ],
+      "height": 10.0,
       "is_collidable": true,
+      "length": 2.0,
       "name": "blue_pillar",
       "position": [
         -8.0,
         5.0,
         -5.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -240,7 +273,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 2.0
     },
     {
       "color": [
@@ -248,13 +282,16 @@
         220,
         60
       ],
+      "height": 6.0,
       "is_collidable": true,
+      "length": 3.0,
       "name": "yellow_block",
       "position": [
         5.0,
         3.0,
         5.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -266,7 +303,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 3.0
     },
     {
       "color": [
@@ -274,13 +312,16 @@
         140,
         40
       ],
+      "height": 1.0,
       "is_collidable": true,
+      "length": 4.0,
       "name": "orange_step",
       "position": [
         -5.0,
         0.5,
         8.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         -0.0,
@@ -292,7 +333,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 8.0
     },
     {
       "color": [
@@ -300,13 +342,16 @@
         60,
         220
       ],
+      "height": 3.0,
       "is_collidable": true,
+      "length": 4.0,
       "name": "purple_ramp",
       "position": [
         -10.0,
         1.5,
         5.0
       ],
+      "primitive_type": "cuboid",
       "rotation": [
         0.0,
         15.000001907348633,
@@ -318,7 +363,8 @@
         1.0
       ],
       "type": "primitive",
-      "visible": true
+      "visible": true,
+      "width": 6.0
     },
     {
       "color": [
@@ -333,6 +379,7 @@
         1.25,
         8.0
       ],
+      "primitive_type": "cube",
       "rotation": [
         0.0,
         -0.0,
@@ -343,6 +390,7 @@
         1.0,
         1.0
       ],
+      "size": 2.5,
       "type": "primitive",
       "visible": true
     }

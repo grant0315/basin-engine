@@ -74,6 +74,9 @@ bool Scene::loadFromFile(const std::string& filepath) {
       m_spawnPoint = glm::vec3(spawn[0], spawn[1], spawn[2]);
     }
 
+    // Clear existing entities before loading new ones
+    cleanup();
+
     // Load lights
     m_lights.clear();
     if (j.contains("lights")) {
@@ -116,22 +119,24 @@ bool Scene::loadFromFile(const std::string& filepath) {
         
         Model* model = nullptr;
         
+        PrimitiveParams primParams;
         if (type == "primitive") {
           std::string primitiveType = ent.value("primitive_type", "");
-          
+          primParams.primitiveType = primitiveType;
+
           if (primitiveType == "plane") {
-            float width = ent.value("width", 10.0f);
-            float depth = ent.value("depth", 10.0f);
-            float thickness = ent.value("thickness", 1.0f);
-            model = m_primGen.generatePlane(width, depth, thickness);
+            primParams.width = ent.value("width", 10.0f);
+            primParams.depth = ent.value("depth", 10.0f);
+            primParams.thickness = ent.value("thickness", 1.0f);
+            model = m_primGen.generatePlane(primParams.width, primParams.depth, primParams.thickness);
           } else if (primitiveType == "cube") {
-            float size = ent.value("size", 1.0f);
-            model = m_primGen.generateCube(size);
+            primParams.size = ent.value("size", 1.0f);
+            model = m_primGen.generateCube(primParams.size);
           } else if (primitiveType == "cuboid") {
-            float length = ent.value("length", 1.0f);
-            float width = ent.value("width", 1.0f);
-            float height = ent.value("height", 1.0f);
-            model = m_primGen.generateCuboid(length, width, height);
+            primParams.length = ent.value("length", 1.0f);
+            primParams.width = ent.value("width", 1.0f);
+            primParams.height = ent.value("height", 1.0f);
+            model = m_primGen.generateCuboid(primParams.length, primParams.width, primParams.height);
           } else {
             std::cout << "WARNING: Unknown primitive type '" << primitiveType << "' for entity '" << name << "', skipping." << std::endl;
             continue;
@@ -168,6 +173,9 @@ bool Scene::loadFromFile(const std::string& filepath) {
 
         Entity* entity = new Entity(name, model, position, rotation, scaleVec, isCollidable);
         entity->setVisible(ent.value("visible", true));
+        if (type == "primitive") {
+          entity->setPrimitiveParams(primParams);
+        }
 
         // Override base color from JSON if provided (RGBA 0-255)
         if (ent.contains("color")) {
@@ -238,7 +246,6 @@ bool Scene::saveToFile(const std::string& filepath) {
   for (Entity* ent : m_entities) {
     json ej;
     ej["name"] = ent->getName();
-    ej["type"] = "primitive";
     ej["position"] = {ent->getPosition().x, ent->getPosition().y, ent->getPosition().z};
 
     glm::vec3 euler = glm::degrees(glm::eulerAngles(ent->getRotation()));
@@ -254,6 +261,26 @@ bool Scene::saveToFile(const std::string& filepath) {
       static_cast<int>(color.b * 255)
     };
     ej["visible"] = ent->isVisible();
+
+    if (ent->hasPrimitiveParams()) {
+      const PrimitiveParams& p = ent->getPrimitiveParams();
+      ej["type"] = "primitive";
+      ej["primitive_type"] = p.primitiveType;
+      if (p.primitiveType == "plane") {
+        ej["width"] = p.width;
+        ej["depth"] = p.depth;
+        ej["thickness"] = p.thickness;
+      } else if (p.primitiveType == "cube") {
+        ej["size"] = p.size;
+      } else if (p.primitiveType == "cuboid") {
+        ej["length"] = p.length;
+        ej["width"] = p.width;
+        ej["height"] = p.height;
+      }
+    } else {
+      ej["type"] = "model";
+      // Model path not tracked yet; fallback
+    }
 
     entities.push_back(ej);
   }
