@@ -1,11 +1,8 @@
-#!/bin/bash
-# Simple build and run script for the OpenGL project
-
-set -e  # Exit on error
-
-echo "Building project..."
-cmake --build build
-
-echo "Running application..."
+#!/usr/bin/env bash
+set -e
 cd "$(dirname "$0")"
-./build/my_app
+if [[ ! -f build/CMakeCache.txt ]]; then
+  echo "Run cmake -B build (after installing dependencies) first." >&2
+  exit 1
+fi
+exec cmake --build build --target run

@@ -1,9 +1,15 @@
 build/
+build-w/
 assets/
 *.o
 *.a
 my_app
+my_app.exe
+*.exe
+out/
+.vs/
 .cache/
 compile_commands.json
 CMakeCache.txt
 CMakeLists.txt.user.opencode/
+fonts/*.ttf

@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/matrix4x4.h>
 #include <assimp/postprocess.h>
+#include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -95,7 +96,7 @@ private:
       std::cout << "ERROR::ASSIMP::LOAD_FAILED path: " << path << std::endl;
       return;
     }
-    directory = path.substr(0, path.find_last_of('/'));
+    directory = std::filesystem::path(path).parent_path().string();
 
     // Start recurisve processing from the root
     processNode(scene->mRootNode, scene, directory);

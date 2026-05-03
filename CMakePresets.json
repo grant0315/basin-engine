@@ -1,0 +1,68 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 19, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "common",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "win-ninja",
+      "inherits": "common",
+      "displayName": "Windows — Ninja, Release (single-config)",
+      "description": "Does not use the Visual Studio IDE generator. Needs ninja.exe in PATH. Use a VS Developer PowerShell/Command Prompt for MSVC, or a shell where the compiler is on PATH.",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "win-ninja-vcpkg",
+      "inherits": "win-ninja",
+      "displayName": "Windows — Ninja + vcpkg (use if VS install not found)",
+      "description": "Same as win-ninja, plus the vcpkg manifest toolchain from VCPKG_ROOT. Recommended on Windows with vcpkg when cmake reports it cannot find a Visual Studio instance for the Visual Studio generator.",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "win-vs",
+      "inherits": "common",
+      "displayName": "Windows — Visual Studio 17 2022 (x64, multi-config)",
+      "description": "Avoids the NMake generator. Requires a Visual Studio instance CMake can detect. If you see an error that no instance of Visual Studio was found, use win-ninja or win-ninja-vcpkg instead.",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
+    },
+    {
+      "name": "win-vs-vcpkg",
+      "inherits": "win-vs",
+      "displayName": "Windows — VS 2022 + vcpkg",
+      "description": "Same as win-vs, plus CMAKE_TOOLCHAIN_FILE from the VCPKG_ROOT environment variable.",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "win-ninja-build",
+      "displayName": "Build (Ninja, Release)",
+      "configurePreset": "win-ninja"
+    },
+    {
+      "name": "win-ninja-vcpkg-build",
+      "displayName": "Build (Ninja + vcpkg, Release)",
+      "configurePreset": "win-ninja-vcpkg"
+    },
+    {
+      "name": "win-release",
+      "displayName": "Build (win-vs, multi-config, Release)",
+      "description": "For Visual Studio generators only. Passes --config Release.",
+      "configurePreset": "win-vs",
+      "configuration": "Release"
+    }
+  ]
+}

@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/gh/batcave/opengl-testing/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

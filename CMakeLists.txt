@@ -1,51 +1,92 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
-# 1. FIX THE WARNING: Must be set BEFORE find_package(OpenGL)
-set(OpenGL_GL_PREFERENCE GLVND)
+if(UNIX AND NOT APPLE)
+  set(OpenGL_GL_PREFERENCE GLVND)
+endif()
 
 project(OpenGLProject CXX C)
 
-# Set build type to Release if not specified
-if(NOT CMAKE_BUILD_TYPE)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(NOT CMAKE_CONFIGURATION_TYPES)
+  if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
+  endif()
 endif()
 
-# Enable optimizations for Release builds
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+if(MSVC)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /DNDEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /RTC1 /Zi")
+else()
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+endif()
 
-# 2. FIND PACKAGES
-find_package(glfw3 REQUIRED)
+find_package(glfw3 QUIET CONFIG)
+if(NOT glfw3_FOUND)
+  find_package(glfw3 REQUIRED)
+endif()
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
 find_package(Freetype REQUIRED)
 
-# 3. GLAD SETUP
-# Ensure the path matches exactly where you extracted the GLAD files
-add_library(glad STATIC external/glad/src/glad.c)
+find_package(glm QUIET CONFIG)
+if(glm_FOUND)
+  set(_glm_target glm::glm)
+else()
+  include(FetchContent)
+  FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 0.9.9.8
+  )
+  FetchContent_MakeAvailable(glm)
+  if(TARGET glm::glm)
+    set(_glm_target glm::glm)
+  else()
+    set(_glm_target glm)
+  endif()
+endif()
 
-# This line tells the compiler to look in external/glad/include 
-# so it can find 'glad/glad.h'
+add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
-# 4. APP SETUP
-add_executable(my_app main.cpp model.cpp mesh.cpp shader.cpp text_renderer.cpp camera.cpp input_manager.cpp collision_system.cpp primitive_generator.cpp scene.cpp)
+add_executable(
+  my_app
+  main.cpp
+  model.cpp
+  mesh.cpp
+  shader.cpp
+  text_renderer.cpp
+  camera.cpp
+  input_manager.cpp
+  collision_system.cpp
+  primitive_generator.cpp
+  scene.cpp
+)
+target_include_directories(my_app PRIVATE include external)
 
-# Include FreeType headers and local include directory
-target_include_directories(my_app PRIVATE ${FREETYPE_INCLUDE_DIRS} include external)
-
-# Link everything together
-target_link_libraries(my_app PRIVATE assimp::assimp glad glfw OpenGL::GL ${FREETYPE_LIBRARIES})
-
-# 5. CUSTOM RUN TARGET
-# Usage: cmake --build build --target run
-# Or if using make: make run (from build directory)
-add_custom_target(run
-    COMMAND my_app
-    DEPENDS my_app
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Building and running the application..."
+target_link_libraries(
+  my_app
+  PRIVATE
+    assimp::assimp
+    glad
+    glfw
+    OpenGL::GL
+    Freetype::Freetype
+    ${_glm_target}
 )
 
-# Alternative: run from build directory with "make run"
-# Or from root: cmake --build build --target run
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+  target_link_libraries(my_app PRIVATE stdc++fs)
+endif()
+
+add_custom_target(
+  run
+  COMMAND $<TARGET_FILE:my_app>
+  DEPENDS my_app
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMENT "Run my_app (working directory: source root)"
+)

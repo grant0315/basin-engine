@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 // break
 #include <GLFW/glfw3.h>
+#include <cstdlib>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iomanip>
 #include <iostream>
@@ -118,11 +119,22 @@ int main() {
   // Text renderer
   TextRenderer textRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
   appState.textRenderer = &textRenderer;
-  textRenderer.Load("/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf",
-                    24);
+  const char *fontPath = "fonts/JetBrainsMonoNerdFont-Regular.ttf";
+  if (const char *env = std::getenv("BASIN_FONT")) {
+    if (env[0] != '\0') {
+      fontPath = env;
+    }
+  }
+  textRenderer.Load(fontPath, 24);
+  std::cout << "Text renderer initialized" << std::endl;
 
-  // Shader
-  Shader shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+  // Shaders
+  Shader standardShader("shaders/vertex.glsl", "shaders/fragment.glsl");
+  Shader dotmatrixShader("shaders/vertex.glsl",
+                         "shaders/dotmatrix_fragment.glsl");
+  Shader *activeShader = &dotmatrixShader;
+  bool useDotMatrix = true;
+  bool f1PressedLastFrame = false;
 
   // Scene
   Scene scene;
@@ -155,10 +167,21 @@ int main() {
       }
     }
 
+    // Shader toggle (F1)
+    bool f1Pressed = glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS;
+    if (f1Pressed && !f1PressedLastFrame) {
+      useDotMatrix = !useDotMatrix;
+      activeShader = useDotMatrix ? &dotmatrixShader : &standardShader;
+      std::cout << "Switched to "
+                << (useDotMatrix ? "dot matrix" : "standard") << " shader"
+                << std::endl;
+    }
+    f1PressedLastFrame = f1Pressed;
+
     // Clear
     glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    shader.use();
+    activeShader->use();
 
     // Player movement + collision resolution
     player.handleInput(window, deltaTime);
@@ -171,18 +194,30 @@ int main() {
         glm::radians(45.0f),
         static_cast<float>(appState.windowWidth) / appState.windowHeight, 0.1f,
         10000.0f);
-    shader.setUniform("view", view);
-    shader.setUniform("projection", projection);
-    shader.setUniform("viewPos", player.getPosition());
+    activeShader->setUniform("view", view);
+    activeShader->setUniform("projection", projection);
+
+    if (useDotMatrix) {
+      activeShader->setUniform("lightPos", glm::vec3(15.0f, 18.0f, 15.0f));
+      activeShader->setUniform("dotSize", 4.0f);
+      activeShader->setUniform("maxRadius", 0.32f);
+      activeShader->setUniform("softness", 0.08f);
+      activeShader->setUniform("gridGap", 0.75f);
+      activeShader->setUniform("backgroundColor",
+                               glm::vec3(0.02f, 0.02f, 0.02f));
+    } else {
+      activeShader->setUniform("viewPos", player.getPosition());
+    }
 
     // Draw scene
     for (Entity *ent : scene.getEntities()) {
-      ent->Draw(shader);
+      ent->Draw(*activeShader);
     }
 
     // HUD
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << "FPS: " << appState.fps;
+    ss << std::fixed << std::setprecision(1) << "FPS: " << appState.fps
+       << "  [" << (useDotMatrix ? "DOT" : "STD") << "] F1=toggle";
     textRenderer.RenderText(ss.str(), 10.0f, appState.windowHeight - 20.0f,
                             1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 

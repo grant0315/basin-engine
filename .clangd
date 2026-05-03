@@ -1,16 +1,10 @@
 CompileFlags:
-  Add:
-    - -I/usr/include/freetype2
-    - -I/usr/include/libpng16
   CompilationDatabase: build
-  Compiler: /usr/bin/c++
-
 Diagnostics:
   UnusedIncludes: None
   MissingIncludes: None
   Suppress:
     - template_instantiation_undefined
     - drv_unknown_argument
-
 Index:
   Background: Build
