@@ -1,231 +1,175 @@
 #include <glad/glad.h>
-// break
-#include <GLFW/glfw3.h>
 #include <cstdlib>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <sstream>
 
+#include "basin/engine.h"
 #include "basin/physics/collision_system.h"
 #include "basin/player.h"
+#include "basin/renderer/shader.h"
+#include "basin/renderer/text_renderer.h"
 #include "basin/scene/primitive_generator.h"
 #include "basin/scene/scene.h"
-#include "basin/renderer/text_renderer.h"
 
-// ---------------------------------------------------------------------------
-// Application state — passed to GLFW callbacks via glfwSetWindowUserPointer
-// ---------------------------------------------------------------------------
-struct AppState {
-  int windowWidth;
-  int windowHeight;
-  TextRenderer *textRenderer = nullptr;
+using namespace basin;
 
-  // Timing
-  double lastFpsTime = 0.0;
-  double lastFrameTime = 0.0;
-  double lastFileCheckTime = 0.0;
-  int frameCount = 0;
-  float fps = 0.0f;
+class GameApp : public Application {
+public:
+  void onInit(Window &window) override {
+    // Player
+    PrimitiveGenerator primGen;
+    m_player = std::make_unique<Player>(
+        primGen.generateCuboid(1.0f, 1.0f, 3.0f), true,
+        glm::vec3(0.0f, 3.0f, 0.0f));
+    m_player->getInputManager()->SetupCallbacks(window.getNativeWindow());
 
-  void updateTiming(double currentTime, float &outDeltaTime) {
-    outDeltaTime = static_cast<float>(currentTime - lastFrameTime);
-    lastFrameTime = currentTime;
-
-    frameCount++;
-    if (currentTime - lastFpsTime >= 1.0) {
-      fps = frameCount / static_cast<float>(currentTime - lastFpsTime);
-      frameCount = 0;
-      lastFpsTime = currentTime;
+    // Text renderer
+    m_textRenderer =
+        std::make_unique<TextRenderer>(window.getWidth(), window.getHeight());
+    const char *fontPath = "shared/fonts/JetBrainsMonoNerdFont-Regular.ttf";
+    if (const char *env = std::getenv("BASIN_FONT")) {
+      if (env[0] != '\0')
+        fontPath = env;
     }
-  }
-};
+    m_textRenderer->Load(fontPath, 24);
+    std::cout << "Text renderer initialized" << std::endl;
 
-// ---------------------------------------------------------------------------
-// GLFW callbacks
-// ---------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
-  AppState *state =
-      static_cast<AppState *>(glfwGetWindowUserPointer(window));
-  if (!state)
-    return;
-  state->windowWidth = width;
-  state->windowHeight = height;
-  if (state->textRenderer) {
-    state->textRenderer->UpdateProjection(width, height);
-  }
-}
+    // Shaders
+    m_standardShader = std::make_unique<Shader>(
+        "shared/shaders/vertex.glsl", "shared/shaders/fragment.glsl");
+    m_dotmatrixShader = std::make_unique<Shader>(
+        "shared/shaders/vertex.glsl",
+        "shared/shaders/dotmatrix_fragment.glsl");
+    m_activeShader = m_dotmatrixShader.get();
 
-// ---------------------------------------------------------------------------
-// Window / GL bootstrap
-// ---------------------------------------------------------------------------
-GLFWwindow *initWindow(int width, int height, const char *title) {
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  GLFWwindow *window = glfwCreateWindow(width, height, title, NULL, NULL);
-  if (!window) {
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return nullptr;
-  }
-  glfwMakeContextCurrent(window);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return nullptr;
-  }
-
-  glfwSwapInterval(0); // Uncapped framerate (set to 1 for VSync)
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  if (glfwRawMouseMotionSupported())
-    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-
-  glViewport(0, 0, width, height);
-  glEnable(GL_DEPTH_TEST);
-
-  return window;
-}
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-int main() {
-  const int SCREEN_WIDTH = 1200;
-  const int SCREEN_HEIGHT = 800;
-
-  GLFWwindow *window = initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello world!");
-  if (!window)
-    return -1;
-
-  // Application state (replaces globals)
-  AppState appState;
-  appState.windowWidth = SCREEN_WIDTH;
-  appState.windowHeight = SCREEN_HEIGHT;
-  glfwSetWindowUserPointer(window, &appState);
-
-  // Player
-  PrimitiveGenerator primGen;
-  Player player(primGen.generateCuboid(1.0f, 1.0f, 3.0f), true,
-                glm::vec3(0.0f, 3.0f, 0.0f));
-  player.getInputManager()->SetupCallbacks(window);
-
-  // Text renderer
-  TextRenderer textRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
-  appState.textRenderer = &textRenderer;
-  const char *fontPath = "shared/fonts/JetBrainsMonoNerdFont-Regular.ttf";
-  if (const char *env = std::getenv("BASIN_FONT")) {
-    if (env[0] != '\0') {
-      fontPath = env;
+    // Scene
+    m_scene = std::make_unique<Scene>();
+    if (!m_scene->loadFromFile("game/scenes/main_hall.json")) {
+      std::cout << "Failed to load scene, using fallback" << std::endl;
     }
+    m_player->setPosition(m_scene->getSpawnPoint());
+
+    // Collision
+    m_colSys = std::make_unique<CollisionSystem>();
+    m_colSys->rebuildFromScene(*m_player, m_scene->getEntities());
+
+    // Timing init
+    double now = glfwGetTime();
+    m_lastFileCheckTime = now;
+    m_lastFpsTime = now;
   }
-  textRenderer.Load(fontPath, 24);
-  std::cout << "Text renderer initialized" << std::endl;
 
-  // Shaders
-  Shader standardShader("shared/shaders/vertex.glsl",
-                        "shared/shaders/fragment.glsl");
-  Shader dotmatrixShader("shared/shaders/vertex.glsl",
-                         "shared/shaders/dotmatrix_fragment.glsl");
-  Shader *activeShader = &dotmatrixShader;
-  bool useDotMatrix = true;
-  bool f1PressedLastFrame = false;
+  void onUpdate(float deltaTime, Window &window) override {
+    // Update text renderer projection if window resized
+    m_textRenderer->UpdateProjection(window.getWidth(), window.getHeight());
 
-  // Scene
-  Scene scene;
-  if (!scene.loadFromFile("game/scenes/main_hall.json")) {
-    std::cout << "Failed to load scene, using fallback" << std::endl;
-  }
-  player.setPosition(scene.getSpawnPoint());
-
-  // Collision
-  CollisionSystem colSys;
-  colSys.rebuildFromScene(player, scene.getEntities());
-
-  // Timing init
-  double now = glfwGetTime();
-  appState.lastFpsTime = now;
-  appState.lastFrameTime = now;
-  appState.lastFileCheckTime = now;
-
-  // ---- Game loop ----------------------------------------------------------
-  while (!glfwWindowShouldClose(window)) {
-    double currentTime = glfwGetTime();
-    float deltaTime;
-    appState.updateTiming(currentTime, deltaTime);
+    // FPS tracking
+    m_frameCount++;
+    double now = glfwGetTime();
+    if (now - m_lastFpsTime >= 1.0) {
+      m_fps = m_frameCount / static_cast<float>(now - m_lastFpsTime);
+      m_frameCount = 0;
+      m_lastFpsTime = now;
+    }
 
     // Hot-reload scene file (check once per second)
-    if (currentTime - appState.lastFileCheckTime >= 1.0) {
-      appState.lastFileCheckTime = currentTime;
-      if (scene.hotReloadIfChanged()) {
-        colSys.rebuildFromScene(player, scene.getEntities());
+    double currentTime = glfwGetTime();
+    if (currentTime - m_lastFileCheckTime >= 1.0) {
+      m_lastFileCheckTime = currentTime;
+      if (m_scene->hotReloadIfChanged()) {
+        m_colSys->rebuildFromScene(*m_player, m_scene->getEntities());
       }
     }
 
     // Shader toggle (F1)
-    bool f1Pressed = glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS;
-    if (f1Pressed && !f1PressedLastFrame) {
-      useDotMatrix = !useDotMatrix;
-      activeShader = useDotMatrix ? &dotmatrixShader : &standardShader;
+    bool f1Pressed =
+        glfwGetKey(window.getNativeWindow(), GLFW_KEY_F1) == GLFW_PRESS;
+    if (f1Pressed && !m_f1PressedLastFrame) {
+      m_useDotMatrix = !m_useDotMatrix;
+      m_activeShader =
+          m_useDotMatrix ? m_dotmatrixShader.get() : m_standardShader.get();
       std::cout << "Switched to "
-                << (useDotMatrix ? "dot matrix" : "standard") << " shader"
+                << (m_useDotMatrix ? "dot matrix" : "standard") << " shader"
                 << std::endl;
     }
-    f1PressedLastFrame = f1Pressed;
-
-    // Clear
-    glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    activeShader->use();
+    m_f1PressedLastFrame = f1Pressed;
 
     // Player movement + collision resolution
-    player.handleInput(window, deltaTime);
-    colSys.resolveMovement(player, scene.getEntities());
-    player.update(deltaTime);
+    m_player->handleInput(window.getNativeWindow(), deltaTime);
+    m_colSys->resolveMovement(*m_player, m_scene->getEntities());
+    m_player->update(deltaTime);
+  }
+
+  void onRender() override {
+    glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_activeShader->use();
 
     // Camera matrices
-    glm::mat4 view = player.getViewMatrix();
+    glm::mat4 view = m_player->getViewMatrix();
     glm::mat4 projection = glm::perspective(
         glm::radians(45.0f),
-        static_cast<float>(appState.windowWidth) / appState.windowHeight, 0.1f,
-        10000.0f);
-    activeShader->setUniform("view", view);
-    activeShader->setUniform("projection", projection);
+        static_cast<float>(m_textRenderer->getWidth()) /
+            m_textRenderer->getHeight(),
+        0.1f, 10000.0f);
+    m_activeShader->setUniform("view", view);
+    m_activeShader->setUniform("projection", projection);
 
-    if (useDotMatrix) {
-      activeShader->setUniform("lightPos", glm::vec3(15.0f, 18.0f, 15.0f));
-      activeShader->setUniform("dotSize", 4.0f);
-      activeShader->setUniform("maxRadius", 0.32f);
-      activeShader->setUniform("softness", 0.08f);
-      activeShader->setUniform("gridGap", 0.75f);
-      activeShader->setUniform("backgroundColor",
-                               glm::vec3(0.02f, 0.02f, 0.02f));
+    if (m_useDotMatrix) {
+      m_activeShader->setUniform("lightPos", glm::vec3(15.0f, 18.0f, 15.0f));
+      m_activeShader->setUniform("dotSize", 4.0f);
+      m_activeShader->setUniform("maxRadius", 0.32f);
+      m_activeShader->setUniform("softness", 0.08f);
+      m_activeShader->setUniform("gridGap", 0.75f);
+      m_activeShader->setUniform("backgroundColor",
+                                 glm::vec3(0.02f, 0.02f, 0.02f));
     } else {
-      activeShader->setUniform("viewPos", player.getPosition());
+      m_activeShader->setUniform("viewPos", m_player->getPosition());
     }
 
     // Draw scene
-    for (Entity *ent : scene.getEntities()) {
-      ent->Draw(*activeShader);
+    for (Entity *ent : m_scene->getEntities()) {
+      ent->Draw(*m_activeShader);
     }
 
     // HUD
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << "FPS: " << appState.fps
-       << "  [" << (useDotMatrix ? "DOT" : "STD") << "] F1=toggle";
-    textRenderer.RenderText(ss.str(), 10.0f, appState.windowHeight - 20.0f,
-                            1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+    ss << std::fixed << std::setprecision(1) << "FPS: " << m_fps
+       << "  [" << (m_useDotMatrix ? "DOT" : "STD") << "] F1=toggle";
+    m_textRenderer->RenderText(ss.str(), 10.0f,
+                               m_textRenderer->getHeight() - 20.0f, 1.0f,
+                               glm::vec3(0.0f, 1.0f, 0.0f));
   }
 
-  glfwTerminate();
+  void onShutdown() override {
+    // unique_ptr handles cleanup
+  }
+
+private:
+  std::unique_ptr<Player> m_player;
+  std::unique_ptr<Scene> m_scene;
+  std::unique_ptr<CollisionSystem> m_colSys;
+  std::unique_ptr<TextRenderer> m_textRenderer;
+  std::unique_ptr<Shader> m_standardShader;
+  std::unique_ptr<Shader> m_dotmatrixShader;
+  Shader *m_activeShader = nullptr;
+
+  bool m_useDotMatrix = true;
+  bool m_f1PressedLastFrame = false;
+  double m_lastFileCheckTime = 0.0;
+
+  // FPS tracking
+  double m_lastFpsTime = 0.0;
+  int m_frameCount = 0;
+  float m_fps = 0.0f;
+};
+
+int main() {
+  Engine engine(1200, 800, "Basin Engine");
+  GameApp game;
+  engine.run(&game);
   return 0;
 }

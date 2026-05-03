@@ -1,4 +1,5 @@
 add_library(basin_engine STATIC
+  src/engine.cpp
   src/renderer/shader.cpp
   src/renderer/mesh.cpp
   src/renderer/model.cpp
@@ -6,6 +7,7 @@ add_library(basin_engine STATIC
   src/scene/scene.cpp
   src/scene/primitive_generator.cpp
   src/physics/collision_system.cpp
+  src/platform/window.cpp
   src/platform/input_manager.cpp
   src/math/camera.cpp
 )

@@ -25,7 +25,10 @@ public:
     void Load(std::string font, unsigned int fontSize);
     void RenderText(std::string text, float x, float y, float scale, glm::vec3 color);
     void UpdateProjection(unsigned int width, unsigned int height);
-    
+
+    unsigned int getWidth() const { return screenWidth; }
+    unsigned int getHeight() const { return screenHeight; }
+
 private:
     std::map<char, Character> Characters;
     Shader* textShader;
