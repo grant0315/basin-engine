@@ -167,6 +167,7 @@ bool Scene::loadFromFile(const std::string& filepath) {
         glm::vec3 scaleVec(scale[0], scale[1], scale[2]);
 
         Entity* entity = new Entity(name, model, position, rotation, scaleVec, isCollidable);
+        entity->setVisible(ent.value("visible", true));
 
         // Override base color from JSON if provided (RGBA 0-255)
         if (ent.contains("color")) {
@@ -252,6 +253,7 @@ bool Scene::saveToFile(const std::string& filepath) {
       static_cast<int>(color.g * 255),
       static_cast<int>(color.b * 255)
     };
+    ej["visible"] = ent->isVisible();
 
     entities.push_back(ej);
   }

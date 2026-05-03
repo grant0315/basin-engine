@@ -151,6 +151,14 @@ void EditorApp::drawSceneHierarchy() {
 
     int idx = 0;
     for (Entity *ent : m_scene->getEntities()) {
+      ImGui::PushID(idx);
+      bool visible = ent->isVisible();
+      if (ImGui::Checkbox("##vis", &visible)) {
+        ent->setVisible(visible);
+      }
+      ImGui::PopID();
+      ImGui::SameLine();
+
       ImGuiTreeNodeFlags flags =
           ((!m_selectionIsLight && m_selectedEntity == idx)
                ? ImGuiTreeNodeFlags_Selected

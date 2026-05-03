@@ -18,6 +18,7 @@ public:
     m_name = entName;
     m_model = model;
     m_isCollidable = isCollidable;
+    m_visible = true;
 
     // Set defaults for Model position
     m_position = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -35,6 +36,7 @@ public:
     m_name = entName;
     m_model = model;
     m_isCollidable = isCollidable;
+    m_visible = true;
 
     // Set defaults for model pos, rot, and scale
     m_position = pos;
@@ -135,6 +137,8 @@ public:
   glm::vec3 getModelCenter() const { return m_model->getModelCenter(); }
   std::string getName() { return m_name; }
   bool isCollidable() const { return m_isCollidable; }
+  bool isVisible() const { return m_visible; }
+  void setVisible(bool visible) { m_visible = visible; }
 
   // --- Setters ---
   void setPosition(glm::vec3 pos) {
@@ -184,6 +188,8 @@ public:
   }
 
   void Draw(Shader &shader) {
+    if (!m_visible) return;
+
     // 1. Calculate the model matrix from position, rotation, and scale
     // 2. Pass the matrix to the shader
     // 3. Render each mesh with its textures
@@ -240,6 +246,7 @@ private:
   bool m_dirty; // Flag for needing rebuild of matrix
   bool m_dirtyAABB;
   bool m_isCollidable;
+  bool m_visible = true;
 
   std::string m_name;
   Model *m_model;
