@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-#include "shader.h"
+#include "basin/renderer/shader.h"
 
 std::string readFile(const std::string &filepath) {
   std::ifstream file(filepath, std::ios::ate); // Open at end

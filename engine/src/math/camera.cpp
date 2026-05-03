@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "basin/math/camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : position(position), targetPosition(position), worldUp(up), yaw(yaw),

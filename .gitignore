@@ -12,4 +12,4 @@ out/
 compile_commands.json
 CMakeCache.txt
 CMakeLists.txt.user.opencode/
-fonts/*.ttf
+shared/fonts/*.ttf

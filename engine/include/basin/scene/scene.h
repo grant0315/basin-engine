@@ -1,9 +1,9 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "entity.h"
-#include "camera.h"
-#include "primitive_generator.h"
+#include "basin/scene/entity.h"
+#include "basin/math/camera.h"
+#include "basin/scene/primitive_generator.h"
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <string>

@@ -1,6 +1,6 @@
 #include "glad/glad.h"
 
-#include "mesh.h"
+#include "basin/renderer/mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <glm/gtc/matrix_transform.hpp>

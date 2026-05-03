@@ -1,5 +1,5 @@
-#include "collision_system.h"
-#include "player.h"
+#include "basin/physics/collision_system.h"
+#include "basin/player.h"
 
 void CollisionSystem::rebuildFromScene(
     Player &player, const std::vector<Entity *> &sceneEntities) {

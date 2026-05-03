@@ -7,11 +7,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "collision_system.h"
-#include "player.h"
-#include "primitive_generator.h"
-#include "scene.h"
-#include "text_renderer.h"
+#include "basin/physics/collision_system.h"
+#include "basin/player.h"
+#include "basin/scene/primitive_generator.h"
+#include "basin/scene/scene.h"
+#include "basin/renderer/text_renderer.h"
 
 // ---------------------------------------------------------------------------
 // Application state — passed to GLFW callbacks via glfwSetWindowUserPointer
@@ -119,7 +119,7 @@ int main() {
   // Text renderer
   TextRenderer textRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
   appState.textRenderer = &textRenderer;
-  const char *fontPath = "fonts/JetBrainsMonoNerdFont-Regular.ttf";
+  const char *fontPath = "shared/fonts/JetBrainsMonoNerdFont-Regular.ttf";
   if (const char *env = std::getenv("BASIN_FONT")) {
     if (env[0] != '\0') {
       fontPath = env;
@@ -129,16 +129,17 @@ int main() {
   std::cout << "Text renderer initialized" << std::endl;
 
   // Shaders
-  Shader standardShader("shaders/vertex.glsl", "shaders/fragment.glsl");
-  Shader dotmatrixShader("shaders/vertex.glsl",
-                         "shaders/dotmatrix_fragment.glsl");
+  Shader standardShader("shared/shaders/vertex.glsl",
+                        "shared/shaders/fragment.glsl");
+  Shader dotmatrixShader("shared/shaders/vertex.glsl",
+                         "shared/shaders/dotmatrix_fragment.glsl");
   Shader *activeShader = &dotmatrixShader;
   bool useDotMatrix = true;
   bool f1PressedLastFrame = false;
 
   // Scene
   Scene scene;
-  if (!scene.loadFromFile("scenes/main_hall.json")) {
+  if (!scene.loadFromFile("game/scenes/main_hall.json")) {
     std::cout << "Failed to load scene, using fallback" << std::endl;
   }
   player.setPosition(scene.getSpawnPoint());

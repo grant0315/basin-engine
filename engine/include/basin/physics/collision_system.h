@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-#include "entity.h"
+#include "basin/scene/entity.h"
 
 class Player; // Forward declaration to avoid circular include
 

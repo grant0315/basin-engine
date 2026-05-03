@@ -1,8 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include "model.h"
-#include "shader.h"
+#include "basin/renderer/model.h"
+#include "basin/renderer/shader.h"
 #include <glad/glad.h>
 #include <glm/common.hpp>
 #include <glm/glm.hpp>

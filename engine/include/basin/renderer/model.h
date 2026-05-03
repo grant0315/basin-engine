@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "mesh.h"
+#include "basin/renderer/mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/matrix4x4.h>
 #include <assimp/postprocess.h>

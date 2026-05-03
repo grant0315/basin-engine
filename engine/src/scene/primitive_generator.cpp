@@ -1,5 +1,5 @@
-#include "primitive_generator.h"
-#include "model.h"
+#include "basin/scene/primitive_generator.h"
+#include "basin/renderer/model.h"
 
 Model *PrimitiveGenerator::generateCube(float size) {
   float halfSize = size / 2.0f;

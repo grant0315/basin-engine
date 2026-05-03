@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-#include "model.h"
+#include "basin/renderer/model.h"
 
 // Helper function to load embedded texture from memory (for GLB files)
 unsigned int loadTextureFromMemory(const aiTexture *embeddedTex) {

@@ -1,7 +1,7 @@
 #ifndef INPUT_MANAGER_H
 #define INPUT_MANAGER_H
 
-#include "camera.h"
+#include "basin/math/camera.h"
 #include <GLFW/glfw3.h>
 
 class InputManager {

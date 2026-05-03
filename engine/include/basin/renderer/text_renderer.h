@@ -8,7 +8,7 @@
 
 #include <map>
 #include <string>
-#include "shader.h"
+#include "basin/renderer/shader.h"
 
 struct Character {
     unsigned int TextureID;  // ID handle of the glyph texture

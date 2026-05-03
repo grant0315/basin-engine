@@ -1,11 +1,12 @@
-#include "text_renderer.h"
+#include "basin/renderer/text_renderer.h"
 #include <iostream>
 
 TextRenderer::TextRenderer(unsigned int width, unsigned int height)
     : screenWidth(width), screenHeight(height) {
   // Initialize shader
   textShader =
-      new Shader("shaders/text_vertex.glsl", "shaders/text_fragment.glsl");
+      new Shader("shared/shaders/text_vertex.glsl",
+                 "shared/shaders/text_fragment.glsl");
 
   // Configure VAO/VBO for texture quads
   glGenVertexArrays(1, &VAO);

@@ -4,7 +4,7 @@ if(UNIX AND NOT APPLE)
   set(OpenGL_GL_PREFERENCE GLVND)
 endif()
 
-project(OpenGLProject CXX C)
+project(BasinEngine CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,43 +50,8 @@ else()
   endif()
 endif()
 
-add_library(glad STATIC external/glad/src/glad.c)
-target_include_directories(glad PUBLIC external/glad/include)
+add_library(glad STATIC third_party/glad/src/glad.c)
+target_include_directories(glad PUBLIC third_party/glad/include)
 
-add_executable(
-  my_app
-  main.cpp
-  model.cpp
-  mesh.cpp
-  shader.cpp
-  text_renderer.cpp
-  camera.cpp
-  input_manager.cpp
-  collision_system.cpp
-  primitive_generator.cpp
-  scene.cpp
-)
-target_include_directories(my_app PRIVATE include external)
-
-target_link_libraries(
-  my_app
-  PRIVATE
-    assimp::assimp
-    glad
-    glfw
-    OpenGL::GL
-    Freetype::Freetype
-    ${_glm_target}
-)
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-  target_link_libraries(my_app PRIVATE stdc++fs)
-endif()
-
-add_custom_target(
-  run
-  COMMAND $<TARGET_FILE:my_app>
-  DEPENDS my_app
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMENT "Run my_app (working directory: source root)"
-)
+add_subdirectory(engine)
+add_subdirectory(game)

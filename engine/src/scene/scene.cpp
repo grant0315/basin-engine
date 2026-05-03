@@ -1,5 +1,5 @@
-#include "scene.h"
-#include "model.h"
+#include "basin/scene/scene.h"
+#include "basin/renderer/model.h"
 #include <fstream>
 #include <iostream>
 

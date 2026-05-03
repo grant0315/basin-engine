@@ -3,6 +3,7 @@
     "assimp",
     "freetype",
     "glfw3",
-    "glm"
+    "glm",
+    "nlohmann-json"
   ]
 }

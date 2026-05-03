@@ -1,7 +1,7 @@
 #ifndef PRIMITIVE_GENERATOR_H
 #define PRIMITIVE_GENERATOR_H
 
-#include "model.h"
+#include "basin/renderer/model.h"
 
 class PrimitiveGenerator {
 public:

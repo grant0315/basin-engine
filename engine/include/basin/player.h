@@ -1,8 +1,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "camera.h"
-#include "entity.h"
-#include "input_manager.h"
+#include "basin/math/camera.h"
+#include "basin/scene/entity.h"
+#include "basin/platform/input_manager.h"
 
 class Player : public Entity {
 public:
