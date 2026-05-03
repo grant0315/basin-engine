@@ -2,7 +2,11 @@
 #define SCENE_H
 
 #include "basin/scene/entity.h"
+#include "basin/scene/light.h"
 #include "basin/math/camera.h"
+
+using basin::Light;
+using basin::LightType;
 #include "basin/scene/primitive_generator.h"
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -39,6 +43,14 @@ public:
   void addEntity(Entity* entity) { m_entities.push_back(entity); }
   void removeEntity(size_t index);
 
+  const std::vector<Light>& getLights() const { return m_lights; }
+  std::vector<Light>& getLights() { return m_lights; }
+
+  void addLight(const Light& light) { m_lights.push_back(light); }
+  void removeLight(size_t index) {
+    if (index < m_lights.size()) m_lights.erase(m_lights.begin() + index);
+  }
+
   bool saveToFile(const std::string& filepath);
 
 private:
@@ -50,6 +62,7 @@ private:
   SceneCamera m_camera;
   glm::vec3 m_spawnPoint;
   std::vector<Entity*> m_entities;
+  std::vector<Light> m_lights;
   PrimitiveGenerator m_primGen;
 };
 

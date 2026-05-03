@@ -10,6 +10,24 @@
 
 namespace basin {
 
+static void uploadLights(Shader &shader, const std::vector<Light> &lights) {
+  int count = static_cast<int>(lights.size());
+  if (count > 8) count = 8;
+  for (int i = 0; i < count; ++i) {
+    const Light &l = lights[i];
+    std::string base = "uLights[" + std::to_string(i) + "]";
+    shader.setUniform(base + ".position", l.position);
+    shader.setUniform(base + ".direction", l.direction);
+    shader.setUniform(base + ".color", l.color);
+    shader.setUniform(base + ".intensity", l.intensity);
+    shader.setUniform(base + ".constant", l.constant);
+    shader.setUniform(base + ".linear", l.linear);
+    shader.setUniform(base + ".quadratic", l.quadratic);
+    shader.setUniform(base + ".type", static_cast<int>(l.type));
+  }
+  shader.setUniform("uLightCount", count);
+}
+
 void EditorApp::onInit(Window &window) {
   // ImGui setup
   IMGUI_CHECKVERSION();
@@ -110,37 +128,99 @@ void EditorApp::drawSceneHierarchy() {
   ImGui::SetNextWindowSize(ImVec2(250, 400), ImGuiCond_FirstUseEver);
   ImGui::Begin("Scene Hierarchy");
 
-  if (ImGui::Button("Add Cube")) {
-    PrimitiveGenerator primGen;
-    Entity *ent = new Entity("new_cube", primGen.generateCube(1.0f),
-                             glm::vec3(0, 1, 0), glm::quat(),
-                             glm::vec3(1, 1, 1), true);
-    ent->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    m_scene->addEntity(ent);
-    m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Remove")) {
-    if (m_selectedEntity >= 0 &&
-        m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
-      m_scene->removeEntity(static_cast<size_t>(m_selectedEntity));
-      m_selectedEntity = -1;
+  // Entities section
+  if (ImGui::CollapsingHeader("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::Button("Add Cube")) {
+      PrimitiveGenerator primGen;
+      Entity *ent = new Entity("new_cube", primGen.generateCube(1.0f),
+                               glm::vec3(0, 1, 0), glm::quat(),
+                               glm::vec3(1, 1, 1), true);
+      ent->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+      m_scene->addEntity(ent);
+      m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
+      m_selectionIsLight = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Remove Entity")) {
+      if (!m_selectionIsLight && m_selectedEntity >= 0 &&
+          m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+        m_scene->removeEntity(static_cast<size_t>(m_selectedEntity));
+        m_selectedEntity = -1;
+      }
+    }
+
+    int idx = 0;
+    for (Entity *ent : m_scene->getEntities()) {
+      ImGuiTreeNodeFlags flags =
+          ((!m_selectionIsLight && m_selectedEntity == idx)
+               ? ImGuiTreeNodeFlags_Selected
+               : 0) |
+          ImGuiTreeNodeFlags_Leaf;
+      bool opened = ImGui::TreeNodeEx(ent->getName().c_str(), flags);
+      if (ImGui::IsItemClicked()) {
+        m_selectedEntity = idx;
+        m_selectionIsLight = false;
+      }
+      if (opened)
+        ImGui::TreePop();
+      idx++;
     }
   }
 
-  ImGui::Separator();
+  // Lights section
+  if (ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::Button("Add Directional")) {
+      Light light;
+      light.name = "Directional Light " + std::to_string(m_scene->getLights().size() + 1);
+      light.type = LightType::Directional;
+      light.direction = glm::vec3(0.3f, -1.0f, 0.2f);
+      light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+      light.intensity = 1.0f;
+      m_scene->addLight(light);
+      m_selectedLight = static_cast<int>(m_scene->getLights().size()) - 1;
+      m_selectionIsLight = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Add Point")) {
+      Light light;
+      light.name = "Point Light " + std::to_string(m_scene->getLights().size() + 1);
+      light.type = LightType::Point;
+      light.position = glm::vec3(0.0f, 5.0f, 0.0f);
+      light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+      light.intensity = 1.0f;
+      m_scene->addLight(light);
+      m_selectedLight = static_cast<int>(m_scene->getLights().size()) - 1;
+      m_selectionIsLight = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Remove Light")) {
+      if (m_selectionIsLight && m_selectedLight >= 0 &&
+          m_selectedLight < static_cast<int>(m_scene->getLights().size())) {
+        m_scene->removeLight(static_cast<size_t>(m_selectedLight));
+        m_selectedLight = -1;
+        m_selectionIsLight = false;
+      }
+    }
 
-  int idx = 0;
-  for (Entity *ent : m_scene->getEntities()) {
-    ImGuiTreeNodeFlags flags =
-        ((m_selectedEntity == idx) ? ImGuiTreeNodeFlags_Selected : 0) |
-        ImGuiTreeNodeFlags_Leaf;
-    bool opened = ImGui::TreeNodeEx(ent->getName().c_str(), flags);
-    if (ImGui::IsItemClicked())
-      m_selectedEntity = idx;
-    if (opened)
-      ImGui::TreePop();
-    idx++;
+    int lidx = 0;
+    for (const Light &light : m_scene->getLights()) {
+      ImGuiTreeNodeFlags flags =
+          ((m_selectionIsLight && m_selectedLight == lidx)
+               ? ImGuiTreeNodeFlags_Selected
+               : 0) |
+          ImGuiTreeNodeFlags_Leaf;
+      std::string label = light.name;
+      if (light.type == LightType::Directional) label += " [Dir]";
+      else if (light.type == LightType::Point) label += " [Pt]";
+      bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
+      if (ImGui::IsItemClicked()) {
+        m_selectedLight = lidx;
+        m_selectionIsLight = true;
+      }
+      if (opened)
+        ImGui::TreePop();
+      lidx++;
+    }
   }
 
   ImGui::End();
@@ -151,11 +231,46 @@ void EditorApp::drawInspector() {
   ImGui::SetNextWindowSize(ImVec2(250, 300), ImGuiCond_FirstUseEver);
   ImGui::Begin("Inspector");
 
-  if (m_selectedEntity >= 0 &&
-      m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
-    Entity *ent = m_scene->getEntities()[m_selectedEntity];
+  if (m_selectionIsLight && m_selectedLight >= 0 &&
+      m_selectedLight < static_cast<int>(m_scene->getLights().size())) {
+    Light &light = m_scene->getLights()[m_selectedLight];
 
     // Name
+    char nameBuf[64];
+    strncpy(nameBuf, light.name.c_str(), sizeof(nameBuf));
+    nameBuf[sizeof(nameBuf) - 1] = '\0';
+    if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+      light.name = nameBuf;
+    }
+
+    // Type
+    const char *types[] = {"Directional", "Point", "Spot"};
+    int currentType = static_cast<int>(light.type);
+    if (ImGui::Combo("Type", &currentType, types, IM_ARRAYSIZE(types))) {
+      light.type = static_cast<LightType>(currentType);
+    }
+
+    // Color
+    ImGui::ColorEdit3("Color", &light.color.x);
+
+    // Intensity
+    ImGui::DragFloat("Intensity", &light.intensity, 0.05f, 0.0f, 100.0f);
+
+    if (light.type == LightType::Directional || light.type == LightType::Spot) {
+      ImGui::DragFloat3("Direction", &light.direction.x, 0.05f);
+    }
+
+    if (light.type == LightType::Point || light.type == LightType::Spot) {
+      ImGui::DragFloat3("Position", &light.position.x, 0.1f);
+      ImGui::Text("Attenuation");
+      ImGui::DragFloat("Constant", &light.constant, 0.01f, 0.0f, 10.0f);
+      ImGui::DragFloat("Linear", &light.linear, 0.001f, 0.0f, 10.0f);
+      ImGui::DragFloat("Quadratic", &light.quadratic, 0.0001f, 0.0f, 10.0f);
+    }
+  } else if (!m_selectionIsLight && m_selectedEntity >= 0 &&
+             m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+    Entity *ent = m_scene->getEntities()[m_selectedEntity];
+
     char nameBuf[64];
     strncpy(nameBuf, ent->getName().c_str(), sizeof(nameBuf));
     nameBuf[sizeof(nameBuf) - 1] = '\0';
@@ -163,36 +278,30 @@ void EditorApp::drawInspector() {
       ent->setName(nameBuf);
     }
 
-    // Position
     glm::vec3 pos = ent->getPosition();
     if (ImGui::DragFloat3("Position", &pos.x, 0.1f)) {
       ent->setPosition(pos);
     }
 
-    // Rotation (Euler)
-    glm::vec3 euler =
-        glm::degrees(glm::eulerAngles(ent->getRotation()));
+    glm::vec3 euler = glm::degrees(glm::eulerAngles(ent->getRotation()));
     if (ImGui::DragFloat3("Rotation", &euler.x, 1.0f)) {
       ent->setRotationEuler(euler);
     }
 
-    // Scale
     glm::vec3 scale = ent->getScale();
     if (ImGui::DragFloat3("Scale", &scale.x, 0.05f, 0.01f, 100.0f)) {
       ent->setScale(scale);
     }
 
-    // Color
     glm::vec4 color = ent->getColor();
     if (ImGui::ColorEdit3("Color", &color.x)) {
       ent->setColor(color);
     }
 
-    // Collidable
     bool collidable = ent->isCollidable();
     ImGui::Checkbox("Collidable", &collidable);
   } else {
-    ImGui::Text("No entity selected");
+    ImGui::Text("No selection");
   }
 
   ImGui::End();
@@ -273,6 +382,9 @@ void EditorApp::renderSceneToViewport() {
   Shader *shader = m_showDotMatrix ? m_dotmatrixShader.get() : m_standardShader.get();
   shader->use();
 
+  // Upload scene lights
+  uploadLights(*shader, m_scene->getLights());
+
   // Editor camera
   glm::mat4 view =
       glm::lookAt(m_editorCamPos, m_editorCamTarget, glm::vec3(0, 1, 0));
@@ -285,7 +397,6 @@ void EditorApp::renderSceneToViewport() {
   shader->setUniform("projection", projection);
 
   if (m_showDotMatrix) {
-    shader->setUniform("lightPos", glm::vec3(15.0f, 18.0f, 15.0f));
     shader->setUniform("dotSize", 4.0f);
     shader->setUniform("maxRadius", 0.32f);
     shader->setUniform("softness", 0.08f);

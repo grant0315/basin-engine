@@ -32,6 +32,8 @@ private:
   std::unique_ptr<TextRenderer> m_textRenderer;
 
   int m_selectedEntity = -1;
+  int m_selectedLight = -1;
+  bool m_selectionIsLight = false;
   bool m_useDotMatrix = true;
   bool m_showDotMatrix = false; // for viewport preview
 

@@ -16,6 +16,24 @@
 
 using namespace basin;
 
+static void uploadLights(Shader &shader, const std::vector<Light> &lights) {
+  int count = static_cast<int>(lights.size());
+  if (count > 8) count = 8;
+  for (int i = 0; i < count; ++i) {
+    const Light &l = lights[i];
+    std::string base = "uLights[" + std::to_string(i) + "]";
+    shader.setUniform(base + ".position", l.position);
+    shader.setUniform(base + ".direction", l.direction);
+    shader.setUniform(base + ".color", l.color);
+    shader.setUniform(base + ".intensity", l.intensity);
+    shader.setUniform(base + ".constant", l.constant);
+    shader.setUniform(base + ".linear", l.linear);
+    shader.setUniform(base + ".quadratic", l.quadratic);
+    shader.setUniform(base + ".type", static_cast<int>(l.type));
+  }
+  shader.setUniform("uLightCount", count);
+}
+
 class GameApp : public Application {
 public:
   void onInit(Window &window) override {
@@ -119,8 +137,10 @@ public:
     m_activeShader->setUniform("view", view);
     m_activeShader->setUniform("projection", projection);
 
+    // Upload lights
+    uploadLights(*m_activeShader, m_scene->getLights());
+
     if (m_useDotMatrix) {
-      m_activeShader->setUniform("lightPos", glm::vec3(15.0f, 18.0f, 15.0f));
       m_activeShader->setUniform("dotSize", 4.0f);
       m_activeShader->setUniform("maxRadius", 0.32f);
       m_activeShader->setUniform("softness", 0.08f);

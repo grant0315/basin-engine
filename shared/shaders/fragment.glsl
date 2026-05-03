@@ -5,8 +5,21 @@ in vec3 vNormal;
 in vec2 vTexCoords;
 in mat3 vTBN;
 
-// Directional light
-vec3 lightDir = normalize(vec3(0.3, 1.0, 0.2));
+#define MAX_LIGHTS 8
+
+struct Light {
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float intensity;
+    float constant;
+    float linear;
+    float quadratic;
+    int type;
+};
+
+uniform Light uLights[MAX_LIGHTS];
+uniform int uLightCount;
 
 // Texture samplers
 uniform sampler2D texture_diffuse;
@@ -30,52 +43,69 @@ const float heightScale = 0.05;
 
 out vec4 fragColor;
 
-// Simple parallax mapping — offsets UVs based on height map and view direction
 vec2 parallaxOffset(vec2 texCoords, vec3 viewDirTangent) {
   float height = texture(texture_height, texCoords).r;
-  // Offset along view direction in tangent space, scaled by height
   vec2 offset = viewDirTangent.xy / viewDirTangent.z * (height * heightScale);
   return texCoords - offset;
 }
 
+vec3 calcLight(Light light, vec3 normal, vec3 viewDir, vec3 baseColor, float roughness) {
+  vec3 lightDir;
+  float attenuation = 1.0;
+
+  if (light.type == 0) {
+    // Directional
+    lightDir = normalize(-light.direction);
+  } else {
+    // Point (and Spot for now)
+    lightDir = normalize(light.position - vFragPos);
+    float dist = length(light.position - vFragPos);
+    attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);
+  }
+
+  // Diffuse
+  float diff = max(dot(normal, lightDir), 0.0);
+
+  // Specular (Blinn-Phong)
+  vec3 halfDir = normalize(lightDir + viewDir);
+  float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
+  float specStrength = 0.5 * (1.0 - roughness);
+
+  vec3 ambient = baseColor * 0.1 * light.color * light.intensity;
+  vec3 diffuse = baseColor * diff * light.color * light.intensity;
+  vec3 specular = vec3(specStrength * spec) * light.color * light.intensity;
+
+  return (ambient + diffuse + specular) * attenuation;
+}
+
 void main() {
-  // View direction in tangent space (for parallax)
   vec3 viewDir = normalize(viewPos - vFragPos);
   vec3 viewDirTangent = normalize(transpose(vTBN) * viewDir);
 
-  // UV coordinates (possibly offset by parallax)
   vec2 texCoords = vTexCoords;
   if (hasHeightMap) {
     texCoords = parallaxOffset(texCoords, viewDirTangent);
   }
 
-  // Base color
   vec3 baseColor = hasTexture ? texture(texture_diffuse, texCoords).rgb : objectColor;
 
-  // Normal — either from normal map or vertex normal
   vec3 normal;
   if (hasNormalMap) {
-    // Sample normal map (stored as RGB [0,1], remap to [-1,1])
     normal = texture(texture_normal, texCoords).rgb * 2.0 - 1.0;
     normal = normalize(vTBN * normal);
   } else {
     normal = normalize(vNormal);
   }
 
-  // Diffuse lighting
-  float diff = max(dot(normal, lightDir), 0.0);
-  float ambient = 0.2;
-  float diffuse = (1.0 - ambient) * diff;
-
-  // Specular (Blinn-Phong)
-  vec3 halfDir = normalize(lightDir + viewDir);
-  float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
-
-  // Roughness attenuates specular (roughness 1.0 = no specular, 0.0 = full)
   float roughness = hasRoughnessMap ? texture(texture_roughness, texCoords).r : 0.5;
-  float specStrength = 0.5 * (1.0 - roughness);
 
-  float finalLight = ambient + diffuse + specStrength * spec;
+  vec3 result = vec3(0.0);
+  for (int i = 0; i < uLightCount && i < MAX_LIGHTS; ++i) {
+    result += calcLight(uLights[i], normal, viewDir, baseColor, roughness);
+  }
 
-  fragColor = vec4(baseColor * finalLight, objectAlpha);
+  // Ambient base level so unlit areas aren't pure black
+  result += baseColor * 0.05;
+
+  fragColor = vec4(result, objectAlpha);
 }

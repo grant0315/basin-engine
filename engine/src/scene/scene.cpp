@@ -3,6 +3,9 @@
 #include <fstream>
 #include <iostream>
 
+using basin::Light;
+using basin::LightType;
+
 Scene::Scene() : m_name(""), m_camera({glm::vec3(0, 10, 20), 45.0f}), m_spawnPoint(glm::vec3(0, 5, 0)) {}
 
 void Scene::cleanup() {
@@ -69,6 +72,41 @@ bool Scene::loadFromFile(const std::string& filepath) {
     if (j.contains("spawn_point")) {
       std::vector<float> spawn = j["spawn_point"];
       m_spawnPoint = glm::vec3(spawn[0], spawn[1], spawn[2]);
+    }
+
+    // Load lights
+    m_lights.clear();
+    if (j.contains("lights")) {
+      for (const auto& lj : j["lights"]) {
+        Light light;
+        light.name = lj.value("name", "Light");
+        std::string typeStr = lj.value("type", "directional");
+        if (typeStr == "directional") light.type = LightType::Directional;
+        else if (typeStr == "point") light.type = LightType::Point;
+        else if (typeStr == "spot") light.type = LightType::Spot;
+
+        if (lj.contains("position")) {
+          auto& p = lj["position"];
+          light.position = glm::vec3(p[0], p[1], p[2]);
+        }
+        if (lj.contains("direction")) {
+          auto& d = lj["direction"];
+          light.direction = glm::vec3(d[0], d[1], d[2]);
+        }
+        if (lj.contains("color")) {
+          auto& c = lj["color"];
+          light.color = glm::vec3(c[0], c[1], c[2]);
+        }
+        light.intensity = lj.value("intensity", 1.0f);
+        light.constant = lj.value("constant", 1.0f);
+        light.linear = lj.value("linear", 0.09f);
+        light.quadratic = lj.value("quadratic", 0.032f);
+        light.cutoff = lj.value("cutoff", 12.5f);
+        light.outerCutoff = lj.value("outer_cutoff", 17.5f);
+
+        m_lights.push_back(light);
+        std::cout << "Loaded light: " << light.name << " (" << typeStr << ")" << std::endl;
+      }
     }
 
     if (j.contains("entities")) {
@@ -173,11 +211,33 @@ bool Scene::saveToFile(const std::string& filepath) {
   j["camera"]["fov"] = m_camera.fov;
   j["spawn_point"] = {m_spawnPoint.x, m_spawnPoint.y, m_spawnPoint.z};
 
+  // Serialize lights
+  json lights = json::array();
+  for (const Light& light : m_lights) {
+    json lj;
+    lj["name"] = light.name;
+    if (light.type == LightType::Directional) lj["type"] = "directional";
+    else if (light.type == LightType::Point) lj["type"] = "point";
+    else if (light.type == LightType::Spot) lj["type"] = "spot";
+
+    lj["position"] = {light.position.x, light.position.y, light.position.z};
+    lj["direction"] = {light.direction.x, light.direction.y, light.direction.z};
+    lj["color"] = {light.color.r, light.color.g, light.color.b};
+    lj["intensity"] = light.intensity;
+    lj["constant"] = light.constant;
+    lj["linear"] = light.linear;
+    lj["quadratic"] = light.quadratic;
+    lj["cutoff"] = light.cutoff;
+    lj["outer_cutoff"] = light.outerCutoff;
+    lights.push_back(lj);
+  }
+  j["lights"] = lights;
+
   json entities = json::array();
   for (Entity* ent : m_entities) {
     json ej;
     ej["name"] = ent->getName();
-    ej["type"] = "primitive"; // Simplified: we don't track original type
+    ej["type"] = "primitive";
     ej["position"] = {ent->getPosition().x, ent->getPosition().y, ent->getPosition().z};
 
     glm::vec3 euler = glm::degrees(glm::eulerAngles(ent->getRotation()));
@@ -186,9 +246,12 @@ bool Scene::saveToFile(const std::string& filepath) {
     ej["scale"] = {ent->getScale().x, ent->getScale().y, ent->getScale().z};
     ej["is_collidable"] = ent->isCollidable();
 
-    // Save color
-    glm::vec3 color = ent->getModelCenter(); // Can't easily get color back, skip for now
-    // Actually we can't easily get the color from Entity. Skip color saving for now.
+    glm::vec4 color = ent->getColor();
+    ej["color"] = {
+      static_cast<int>(color.r * 255),
+      static_cast<int>(color.g * 255),
+      static_cast<int>(color.b * 255)
+    };
 
     entities.push_back(ej);
   }
