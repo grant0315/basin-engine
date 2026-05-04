@@ -12,6 +12,7 @@ target_include_directories(basin_editor
     src/imgui_backends
     ${CMAKE_SOURCE_DIR}/engine/include
     ${CMAKE_SOURCE_DIR}/third_party/glad/include
+    ${CMAKE_SOURCE_DIR}/editor/third_party
 )
 
 target_link_libraries(basin_editor

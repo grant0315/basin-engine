@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <fstream>
+#include <portable-file-dialogs.h>
 
 namespace basin {
 
@@ -73,6 +74,30 @@ void EditorApp::onUpdate(float deltaTime, Window &window) {
   ImGui::NewFrame();
 
   drawMenuBar();
+
+  // New Scene modal popup
+  ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+  ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  if (ImGui::BeginPopupModal("New Scene##modal", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Enter scene name:");
+    static char nameBuf[64] = "Untitled";
+    ImGui::InputText("##name", nameBuf, sizeof(nameBuf));
+    if (ImGui::Button("Create", ImVec2(120, 0))) {
+      m_scene->resetToEmpty(nameBuf);
+      m_scene->setSpawnPoint(glm::vec3(0.0f, 5.0f, 10.0f));
+      m_selectedEntity = -1;
+      m_selectedLight = -1;
+      m_selectionIsLight = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
   drawSceneHierarchy();
   drawInspector();
   drawViewport();
@@ -102,13 +127,48 @@ void EditorApp::onShutdown() {
 void EditorApp::drawMenuBar() {
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Open Scene...", "Ctrl+O")) {
-        m_scene->loadFromFile("game/scenes/main_hall.json");
-        m_selectedEntity = -1;
+      if (ImGui::MenuItem("New Scene...", "Ctrl+N")) {
+        ImGui::OpenPopup("New Scene##modal");
       }
+      if (ImGui::MenuItem("Open Scene...", "Ctrl+O")) {
+        auto selection = pfd::open_file(
+            "Open Scene",
+            "game/scenes",
+            {"JSON Files", "*.json"},
+            pfd::opt::none).result();
+        if (!selection.empty()) {
+          m_scene->loadFromFile(selection[0]);
+          m_selectedEntity = -1;
+          m_selectedLight = -1;
+          m_selectionIsLight = false;
+        }
+      }
+      ImGui::Separator();
       if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {
-        m_scene->saveToFile("game/scenes/main_hall.json");
-        std::cout << "Scene saved!" << std::endl;
+        std::string path = m_scene->getFilepath();
+        if (path.empty()) {
+          auto destination = pfd::save_file(
+              "Save Scene",
+              "game/scenes/" + m_scene->getName() + ".json",
+              {"JSON Files", "*.json"}).result();
+          if (!destination.empty()) {
+            path = destination;
+          }
+        }
+        if (!path.empty()) {
+          m_scene->saveToFile(path);
+          std::cout << "Scene saved: " << path << std::endl;
+        }
+      }
+      if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S")) {
+        auto destination = pfd::save_file(
+            "Save Scene As",
+            "game/scenes/" + m_scene->getName() + ".json",
+            {"JSON Files", "*.json"}).result();
+        if (!destination.empty()) {
+          m_scene->saveToFile(destination);
+          std::cout << "Scene saved: " << destination << std::endl;
+        }
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Exit"))
@@ -330,7 +390,7 @@ void EditorApp::drawViewport() {
     // Zoom with scroll wheel
     float wheel = io.MouseWheel;
     if (wheel != 0.0f) {
-      m_orbitDistance = glm::max(1.0f, m_orbitDistance - wheel * 2.0f);
+      m_orbitDistance = (m_orbitDistance - wheel * 2.0f < 1.0f) ? 1.0f : (m_orbitDistance - wheel * 2.0f);
     }
 
     // Orbit with middle mouse drag

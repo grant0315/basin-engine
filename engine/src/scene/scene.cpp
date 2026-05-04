@@ -15,6 +15,16 @@ void Scene::cleanup() {
   m_entities.clear();
 }
 
+void Scene::resetToEmpty(const std::string& name) {
+  cleanup();
+  m_lights.clear();
+  m_name = name;
+  m_filepath.clear();
+  m_lastModifiedTime = std::filesystem::file_time_type();
+  m_camera = {glm::vec3(0, 10, 20), 45.0f};
+  m_spawnPoint = glm::vec3(0, 5, 0);
+}
+
 bool Scene::checkForChanges() {
   try {
     auto currentModTime = std::filesystem::last_write_time(m_filepath);

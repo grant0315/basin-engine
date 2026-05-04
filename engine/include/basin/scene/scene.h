@@ -53,6 +53,11 @@ public:
 
   bool saveToFile(const std::string& filepath);
 
+  std::string getFilepath() const { return m_filepath; }
+  void clearFilepath() { m_filepath.clear(); }
+
+  void resetToEmpty(const std::string& name);
+
 private:
   void cleanup();
 
