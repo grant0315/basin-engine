@@ -1,5 +1,6 @@
 #include "basin/scene/scene.h"
 #include "basin/renderer/model.h"
+#include "basin/renderer/material.h"
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -219,6 +220,50 @@ bool Scene::loadFromFile(const std::string& filepath) {
           }
         }
 
+        // Load material override
+        if (ent.contains("material_override")) {
+          auto& mj = ent["material_override"];
+          Material mat;
+          mat.isOverride = true;
+          if (mj.contains("base_color") && mj["base_color"].is_array()) {
+            auto& c = mj["base_color"];
+            mat.baseColor = glm::vec3(c[0].get<float>(), c[1].get<float>(), c[2].get<float>());
+          }
+          if (mj.contains("opacity")) {
+            mat.opacity = mj["opacity"].get<float>();
+          }
+          if (mj.contains("roughness")) {
+            mat.roughness = mj["roughness"].get<float>();
+          }
+          if (mj.contains("metallic")) {
+            mat.metallic = mj["metallic"].get<float>();
+          }
+          if (mj.contains("emissive") && mj["emissive"].is_array()) {
+            auto& e = mj["emissive"];
+            mat.emissive = glm::vec3(e[0].get<float>(), e[1].get<float>(), e[2].get<float>());
+          }
+          if (mj.contains("ao_strength")) {
+            mat.aoStrength = mj["ao_strength"].get<float>();
+          }
+
+          std::string shaderStr = mj.value("shader", "standard");
+          if (shaderStr == "pbr") mat.shaderType = ShaderType::PBR;
+          else if (shaderStr == "dotmatrix") mat.shaderType = ShaderType::DotMatrix;
+          else if (shaderStr == "unlit") mat.shaderType = ShaderType::Unlit;
+          else mat.shaderType = ShaderType::Standard;
+
+          const char* slotKeys[] = {"tex_diffuse", "tex_normal", "tex_height", "tex_roughness", "tex_metallic", "tex_ao", "tex_emissive", "tex_opacity"};
+          for (int i = 0; i < 8; i++) {
+            std::string path = mj.value(slotKeys[i], "");
+            if (!path.empty()) {
+              mat.texturePaths[i] = path;
+            }
+          }
+
+          mat.loadTextures();
+          entity->setMaterialOverride(mat);
+        }
+
         m_entities.push_back(entity);
 
         std::cout << "Loaded entity: " << name << " (" << type << ")" << std::endl;
@@ -395,6 +440,34 @@ bool Scene::saveToFile(const std::string& filepath) {
       static_cast<int>(color.b * 255)
     };
     ej["visible"] = ent->isVisible();
+
+    // Serialize material override
+    if (ent->hasMaterialOverride()) {
+      const Material& mat = *ent->getMaterialOverridePtr();
+      json mj;
+      mj["base_color"] = {mat.baseColor.r, mat.baseColor.g, mat.baseColor.b};
+      mj["opacity"] = mat.opacity;
+      mj["roughness"] = mat.roughness;
+      mj["metallic"] = mat.metallic;
+      mj["emissive"] = {mat.emissive.r, mat.emissive.g, mat.emissive.b};
+      mj["ao_strength"] = mat.aoStrength;
+
+      switch (mat.shaderType) {
+        case ShaderType::PBR: mj["shader"] = "pbr"; break;
+        case ShaderType::DotMatrix: mj["shader"] = "dotmatrix"; break;
+        case ShaderType::Unlit: mj["shader"] = "unlit"; break;
+        default: mj["shader"] = "standard"; break;
+      }
+
+      const char* slotKeys[] = {"tex_diffuse", "tex_normal", "tex_height", "tex_roughness", "tex_metallic", "tex_ao", "tex_emissive", "tex_opacity"};
+      for (int i = 0; i < 8; i++) {
+        if (!mat.texturePaths[i].empty()) {
+          mj[slotKeys[i]] = mat.texturePaths[i];
+        }
+      }
+
+      ej["material_override"] = mj;
+    }
 
     if (ent->hasPrimitiveParams()) {
       const PrimitiveParams& p = ent->getPrimitiveParams();

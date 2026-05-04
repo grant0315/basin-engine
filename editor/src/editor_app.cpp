@@ -2,6 +2,8 @@
 #include "basin/scene/entity.h"
 #include "basin/scene/collection.h"
 #include "basin/renderer/model.h"
+#include "basin/renderer/material.h"
+#include "basin/renderer/texture_loader.h"
 #include <glad/glad.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -106,6 +108,10 @@ void EditorApp::onInit(Window &window) {
   m_dotmatrixShader = std::make_unique<Shader>(
       "shared/shaders/vertex.glsl",
       "shared/shaders/dotmatrix_fragment.glsl");
+  m_pbrShader = std::make_unique<Shader>(
+      "shared/shaders/vertex.glsl", "shared/shaders/fragment_pbr.glsl");
+  m_unlitShader = std::make_unique<Shader>(
+      "shared/shaders/vertex.glsl", "shared/shaders/fragment_unlit.glsl");
   m_activeShader = m_standardShader.get();
 
   // Text renderer for HUD (optional in editor)
@@ -920,6 +926,89 @@ void EditorApp::drawInspector() {
     bool collidable = ent->isCollidable();
     ImGui::Checkbox("Collidable", &collidable);
 
+    // Material Override section
+    ImGui::Separator();
+    bool hasOverride = ent->hasMaterialOverride();
+    if (ImGui::Checkbox("Material Override", &hasOverride)) {
+      if (hasOverride) {
+        ent->getMaterialOverride(); // creates default override
+      } else {
+        ent->clearMaterialOverride();
+      }
+    }
+
+    if (hasOverride) {
+      Material& mat = ent->getMaterialOverride();
+
+      const char* shaderItems[] = {"Standard", "PBR", "DotMatrix", "Unlit"};
+      int currentShader = static_cast<int>(mat.shaderType);
+      if (ImGui::Combo("Shader", &currentShader, shaderItems, IM_ARRAYSIZE(shaderItems))) {
+        mat.shaderType = static_cast<ShaderType>(currentShader);
+      }
+
+      ImGui::ColorEdit3("Base Color", &mat.baseColor.x);
+      ImGui::DragFloat("Opacity", &mat.opacity, 0.01f, 0.0f, 1.0f);
+      ImGui::DragFloat("Roughness", &mat.roughness, 0.01f, 0.0f, 1.0f);
+      ImGui::DragFloat("Metallic", &mat.metallic, 0.01f, 0.0f, 1.0f);
+      ImGui::DragFloat3("Emissive", &mat.emissive.x, 0.01f, 0.0f, 10.0f);
+      ImGui::DragFloat("AO Strength", &mat.aoStrength, 0.01f, 0.0f, 2.0f);
+
+      if (ImGui::TreeNode("Textures")) {
+        const char* slotLabels[] = {
+          "Diffuse", "Normal", "Height", "Roughness",
+          "Metallic", "AO", "Emissive", "Opacity"
+        };
+        for (int i = 0; i < static_cast<int>(TextureSlot::Count); i++) {
+          ImGui::PushID(i);
+          bool hasTex = mat.hasTexture[i];
+          if (ImGui::Checkbox(slotLabels[i], &hasTex)) {
+            if (hasTex) {
+              auto result = pfd::open_file(
+                  std::string("Select ") + slotLabels[i] + " Texture",
+                  "shared/assets/textures",
+                  {"Image Files", "*.png *.jpg *.jpeg *.bmp *.tga *.tif",
+                   "All Files", "*.*"},
+                  pfd::opt::none).result();
+              if (!result.empty()) {
+                std::filesystem::path filePath(result[0]);
+                std::string filename = filePath.filename().string();
+                std::string destFolder = "shared/assets/textures/";
+                std::string destPath = destFolder + filename;
+                if (!std::filesystem::exists(destPath)) {
+                  std::filesystem::copy_file(filePath, destPath,
+                                              std::filesystem::copy_options::overwrite_existing);
+                }
+                mat.texturePaths[i] = destPath;
+                unsigned int texID = loadTextureFromFile(destPath.c_str());
+                if (texID != 0) {
+                  mat.textureIDs[i] = texID;
+                  mat.hasTexture[i] = true;
+                } else {
+                  mat.hasTexture[i] = false;
+                }
+              } else {
+                mat.hasTexture[i] = false;
+              }
+            } else {
+              mat.hasTexture[i] = false;
+              mat.texturePaths[i] = "";
+            }
+          }
+          if (mat.hasTexture[i] && !mat.texturePaths[i].empty()) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "%s",
+                              std::filesystem::path(mat.texturePaths[i]).filename().string().c_str());
+          }
+          ImGui::PopID();
+        }
+        ImGui::TreePop();
+      }
+
+      if (ImGui::Button("Clear Override")) {
+        ent->clearMaterialOverride();
+      }
+    }
+
     // Show which collection the entity belongs to
     if (ent->getCollection()) {
       ImGui::Separator();
@@ -1036,12 +1125,6 @@ void EditorApp::renderSceneToViewport() {
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  Shader *shader = m_showDotMatrix ? m_dotmatrixShader.get() : m_standardShader.get();
-  shader->use();
-
-  // Upload scene lights
-  uploadLights(*shader, m_scene->getLights());
-
   // Editor camera
   glm::mat4 view =
       glm::lookAt(m_editorCamPos, m_editorCamTarget, glm::vec3(0, 1, 0));
@@ -1050,22 +1133,33 @@ void EditorApp::renderSceneToViewport() {
       static_cast<float>(m_viewport->getWidth()) / m_viewport->getHeight(),
       0.1f, 10000.0f);
 
-  shader->setUniform("view", view);
-  shader->setUniform("projection", projection);
-
-  if (m_showDotMatrix) {
-    shader->setUniform("dotSize", 4.0f);
-    shader->setUniform("maxRadius", 0.32f);
-    shader->setUniform("softness", 0.08f);
-    shader->setUniform("gridGap", 0.75f);
-    shader->setUniform("backgroundColor", glm::vec3(0.02f, 0.02f, 0.02f));
-  } else {
-    shader->setUniform("viewPos", m_editorCamPos);
-  }
-
   drawGrid();
 
   for (Entity *ent : m_scene->getEntities()) {
+    Shader* shader = m_standardShader.get();
+    if (m_showDotMatrix) {
+      shader = m_dotmatrixShader.get();
+    } else if (ent->hasMaterialOverride()) {
+      ShaderType st = ent->getMaterialOverridePtr()->shaderType;
+      if (st == ShaderType::PBR) shader = m_pbrShader.get();
+      else if (st == ShaderType::Unlit) shader = m_unlitShader.get();
+    }
+
+    shader->use();
+    uploadLights(*shader, m_scene->getLights());
+    shader->setUniform("view", view);
+    shader->setUniform("projection", projection);
+
+    if (m_showDotMatrix) {
+      shader->setUniform("dotSize", 4.0f);
+      shader->setUniform("maxRadius", 0.32f);
+      shader->setUniform("softness", 0.08f);
+      shader->setUniform("gridGap", 0.75f);
+      shader->setUniform("backgroundColor", glm::vec3(0.02f, 0.02f, 0.02f));
+    } else {
+      shader->setUniform("viewPos", m_editorCamPos);
+    }
+
     ent->Draw(*shader);
   }
 

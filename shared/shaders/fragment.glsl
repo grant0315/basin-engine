@@ -26,17 +26,31 @@ uniform sampler2D texture_diffuse;
 uniform sampler2D texture_normal;
 uniform sampler2D texture_height;
 uniform sampler2D texture_roughness;
+uniform sampler2D texture_metallic;
+uniform sampler2D texture_ao;
+uniform sampler2D texture_emissive;
+uniform sampler2D texture_opacity;
 
 // Feature flags
 uniform bool hasTexture;
 uniform bool hasNormalMap;
 uniform bool hasHeightMap;
 uniform bool hasRoughnessMap;
+uniform bool hasMetallicMap;
+uniform bool hasAOMap;
+uniform bool hasEmissiveMap;
+uniform bool hasOpacityMap;
 
 // Material / scene
 uniform vec3 objectColor;
 uniform float objectAlpha;
 uniform vec3 viewPos;
+
+// PBR material scalars (used by standard shader for roughness only)
+uniform float uRoughness;
+uniform float uMetallic;
+uniform vec3 uEmissive;
+uniform float uAOStrength;
 
 // Parallax strength
 const float heightScale = 0.05;

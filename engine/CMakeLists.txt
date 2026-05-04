@@ -3,6 +3,7 @@ add_library(basin_engine STATIC
   src/renderer/shader.cpp
   src/renderer/mesh.cpp
   src/renderer/model.cpp
+  src/renderer/material.cpp
   src/renderer/text_renderer.cpp
   src/scene/scene.cpp
   src/scene/collection.cpp

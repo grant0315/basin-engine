@@ -32,6 +32,8 @@ private:
   std::unique_ptr<Viewport> m_viewport;
   std::unique_ptr<Shader> m_standardShader;
   std::unique_ptr<Shader> m_dotmatrixShader;
+  std::unique_ptr<Shader> m_pbrShader;
+  std::unique_ptr<Shader> m_unlitShader;
   Shader *m_activeShader = nullptr;
   std::unique_ptr<TextRenderer> m_textRenderer;
 

@@ -13,6 +13,7 @@
 #include <string>
 #include <optional>
 #include "basin/scene/collection.h"
+#include "basin/renderer/material.h"
 
 struct PrimitiveParams {
   std::string primitiveType;
@@ -170,6 +171,22 @@ public:
   bool hasModelParams() const { return m_modelParams.has_value(); }
   const ModelParams& getModelParams() const { return m_modelParams.value(); }
 
+  Material& getMaterialOverride() {
+    if (!m_materialOverride.has_value()) {
+      m_materialOverride = Material();
+      m_materialOverride->isOverride = true;
+      if (!m_model->meshes.empty()) {
+        m_materialOverride->baseColor = m_model->meshes[0].color.baseColor;
+      }
+      m_materialOverride->opacity = m_alpha;
+    }
+    return m_materialOverride.value();
+  }
+  bool hasMaterialOverride() const { return m_materialOverride.has_value(); }
+  const Material* getMaterialOverridePtr() const { return m_materialOverride.has_value() ? &m_materialOverride.value() : nullptr; }
+  void clearMaterialOverride() { m_materialOverride.reset(); }
+  void setMaterialOverride(const Material& mat) { m_materialOverride = mat; m_materialOverride->isOverride = true; }
+
   // --- Setters ---
   void setPosition(glm::vec3 pos) {
     m_position = pos;
@@ -196,14 +213,23 @@ public:
   void setName(std::string name) { m_name = name; }
 
   // Set base color on all meshes (RGB from vec4, alpha stored separately)
+  // Also updates material override if one exists
   void setColor(glm::vec4 color) {
     m_alpha = color.a;
+    if (m_materialOverride.has_value()) {
+      m_materialOverride->baseColor = glm::vec3(color.r, color.g, color.b);
+      m_materialOverride->opacity = color.a;
+    }
     for (auto &mesh : m_model->meshes) {
       mesh.color.baseColor = glm::vec3(color.r, color.g, color.b);
     }
   }
 
   glm::vec4 getColor() const {
+    if (m_materialOverride.has_value()) {
+      const Material& mat = m_materialOverride.value();
+      return glm::vec4(mat.baseColor.r, mat.baseColor.g, mat.baseColor.b, mat.opacity);
+    }
     if (m_model->meshes.empty()) return glm::vec4(1.0f);
     glm::vec3 c = m_model->meshes[0].color.baseColor;
     return glm::vec4(c.r, c.g, c.b, m_alpha);
@@ -221,56 +247,137 @@ public:
     if (!m_visible) return;
     if (m_collection && !m_collection->isEffectivelyVisible()) return;
 
-    // 1. Calculate the model matrix from position, rotation, and scale
-    // 2. Pass the matrix to the shader
-    // 3. Render each mesh with its textures
     glm::mat4 modelMatrix = getModelMatrix();
     shader.setUniform("model", modelMatrix);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
     shader.setUniform("normalMatrix", normalMatrix);
+    shader.setUniform("viewPos", glm::vec3(0.0f)); // placeholder, set by caller ideally
+
+    bool useOverride = m_materialOverride.has_value();
+    const Material* mat = useOverride ? &m_materialOverride.value() : nullptr;
 
     for (unsigned int i = 0; i < m_model->meshes.size(); i++) {
       Mesh &mesh = m_model->meshes[i];
 
-      // Set base color and alpha
-      shader.setUniform("objectColor", mesh.GetColor());
-      shader.setUniform("objectAlpha", m_alpha);
+      // Determine effective scalars
+      glm::vec3 baseColor = mesh.GetColor();
+      float roughness = 0.5f;
+      float metallic = 0.0f;
+      float opacity = m_alpha;
+      glm::vec3 emissive = glm::vec3(0.0f);
+      float aoStrength = 1.0f;
 
-      // Reset texture flags
+      if (mat && mat->isOverride) {
+        baseColor = mat->baseColor;
+        roughness = mat->roughness;
+        metallic = mat->metallic;
+        opacity = mat->opacity;
+        emissive = mat->emissive;
+        aoStrength = mat->aoStrength;
+      }
+
+      shader.setUniform("objectColor", baseColor);
+      shader.setUniform("objectAlpha", opacity);
+      shader.setUniform("uRoughness", roughness);
+      shader.setUniform("uMetallic", metallic);
+      shader.setUniform("uEmissive", emissive);
+      shader.setUniform("uAOStrength", aoStrength);
+
+      // Reset all texture flags
       shader.setUniform("hasTexture", false);
       shader.setUniform("hasNormalMap", false);
       shader.setUniform("hasHeightMap", false);
       shader.setUniform("hasRoughnessMap", false);
+      shader.setUniform("hasMetallicMap", false);
+      shader.setUniform("hasAOMap", false);
+      shader.setUniform("hasEmissiveMap", false);
+      shader.setUniform("hasOpacityMap", false);
 
-      // Bind each texture to the correct unit by type
-      for (const Texture &tex : mesh.textures) {
-        if (tex.type == "texture_diffuse") {
-          glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, tex.id);
-          shader.setUniform("texture_diffuse", 0);
-          shader.setUniform("hasTexture", true);
-        } else if (tex.type == "texture_normal") {
-          glActiveTexture(GL_TEXTURE1);
-          glBindTexture(GL_TEXTURE_2D, tex.id);
-          shader.setUniform("texture_normal", 1);
-          shader.setUniform("hasNormalMap", true);
-        } else if (tex.type == "texture_height") {
-          glActiveTexture(GL_TEXTURE2);
-          glBindTexture(GL_TEXTURE_2D, tex.id);
-          shader.setUniform("texture_height", 2);
-          shader.setUniform("hasHeightMap", true);
-        } else if (tex.type == "texture_roughness") {
-          glActiveTexture(GL_TEXTURE3);
-          glBindTexture(GL_TEXTURE_2D, tex.id);
-          shader.setUniform("texture_roughness", 3);
-          shader.setUniform("hasRoughnessMap", true);
+      // Bind textures: override takes priority, then mesh textures
+      static const char* slotNames[] = {
+        "texture_diffuse", "texture_normal", "texture_height", "texture_roughness",
+        "texture_metallic", "texture_ao", "texture_emissive", "texture_opacity"
+      };
+      static const char* hasNames[] = {
+        "hasTexture", "hasNormalMap", "hasHeightMap", "hasRoughnessMap",
+        "hasMetallicMap", "hasAOMap", "hasEmissiveMap", "hasOpacityMap"
+      };
+      static const char* uniformNames[] = {
+        "texture_diffuse", "texture_normal", "texture_height", "texture_roughness",
+        "texture_metallic", "texture_ao", "texture_emissive", "texture_opacity"
+      };
+
+      // If override has a texture for this slot, use it
+      if (mat && mat->isOverride) {
+        bool hasOverrideForAnySlot = false;
+        for (int s = 0; s < 8; s++) {
+          if (mat->hasTexture[s]) {
+            glActiveTexture(GL_TEXTURE0 + s);
+            glBindTexture(GL_TEXTURE_2D, mat->textureIDs[s]);
+            shader.setUniform(uniformNames[s], s);
+            shader.setUniform(hasNames[s], true);
+            hasOverrideForAnySlot = true;
+          }
+        }
+        if (hasOverrideForAnySlot) {
+          // Also bind mesh textures for slots where override is empty (not "none")
+          for (const Texture &tex : mesh.textures) {
+            for (int s = 0; s < 8; s++) {
+              if (!mat->hasTexture[s] && mat->texturePaths[s] != "none") {
+                // Try to match mesh texture by type
+                if (tex.type == slotNames[s]) {
+                  glActiveTexture(GL_TEXTURE0 + s);
+                  glBindTexture(GL_TEXTURE_2D, tex.id);
+                  shader.setUniform(uniformNames[s], s);
+                  shader.setUniform(hasNames[s], true);
+                }
+              }
+            }
+          }
+        } else {
+          // No override textures loaded, fall back to mesh textures
+          for (const Texture &tex : mesh.textures) {
+            for (int s = 0; s < 8; s++) {
+              if (tex.type == slotNames[s] && mat->texturePaths[s] != "none") {
+                glActiveTexture(GL_TEXTURE0 + s);
+                glBindTexture(GL_TEXTURE_2D, tex.id);
+                shader.setUniform(uniformNames[s], s);
+                shader.setUniform(hasNames[s], true);
+              }
+            }
+          }
+        }
+      } else {
+        // No override — use original 4-slot binding for backward compat
+        for (const Texture &tex : mesh.textures) {
+          if (tex.type == "texture_diffuse") {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, tex.id);
+            shader.setUniform("texture_diffuse", 0);
+            shader.setUniform("hasTexture", true);
+          } else if (tex.type == "texture_normal") {
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, tex.id);
+            shader.setUniform("texture_normal", 1);
+            shader.setUniform("hasNormalMap", true);
+          } else if (tex.type == "texture_height") {
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, tex.id);
+            shader.setUniform("texture_height", 2);
+            shader.setUniform("hasHeightMap", true);
+          } else if (tex.type == "texture_roughness") {
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, tex.id);
+            shader.setUniform("texture_roughness", 3);
+            shader.setUniform("hasRoughnessMap", true);
+          }
         }
       }
 
       mesh.Render();
     }
 
-    m_dirty = false; // Reset dirty flag
+    m_dirty = false;
   }
 
 private:
@@ -293,6 +400,7 @@ private:
 
   std::optional<PrimitiveParams> m_primitiveParams;
   std::optional<ModelParams> m_modelParams;
+  std::optional<Material> m_materialOverride;
 
   Collection* m_collection = nullptr;
 
