@@ -1,5 +1,7 @@
 #include "editor_app.h"
 #include "basin/scene/entity.h"
+#include "basin/scene/collection.h"
+#include "basin/renderer/model.h"
 #include <glad/glad.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -7,7 +9,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <algorithm>
 #include <portable-file-dialogs.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace basin {
 
@@ -27,6 +37,54 @@ static void uploadLights(Shader &shader, const std::vector<Light> &lights) {
     shader.setUniform(base + ".type", static_cast<int>(l.type));
   }
   shader.setUniform("uLightCount", count);
+}
+
+static bool copyFileToDir(const std::string& srcPath, const std::string& destDir) {
+  namespace fs = std::filesystem;
+  fs::path src(srcPath);
+  if (!fs::exists(src)) return false;
+  fs::path dest = fs::path(destDir) / src.filename();
+  fs::create_directories(fs::path(destDir));
+  std::error_code ec;
+  fs::copy_file(src, dest, fs::copy_options::overwrite_existing, ec);
+  return !ec;
+}
+
+static std::vector<std::string> getTextureExtensions() {
+  return {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".tif", ".tiff", ".gif", ".webp"};
+}
+
+static bool isTextureFile(const std::string& ext) {
+  std::string lower = ext;
+  std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+  for (const auto& texExt : getTextureExtensions()) {
+    if (lower == texExt) return true;
+  }
+  return false;
+}
+
+static std::vector<std::string> copyTexturesFromDir(const std:: string& modelDir, const std::string& texDestDir) {
+  namespace fs = std::filesystem;
+  std::vector<std::string> copied;
+  fs::path dir(modelDir);
+  if (!fs::exists(dir)) return copied;
+
+  for (const auto& entry : fs::recursive_directory_iterator(dir)) {
+    if (!entry.is_regular_file()) continue;
+    std::string ext = entry.path().extension().string();
+    if (isTextureFile(ext)) {
+      fs::path srcFile = entry.path();
+      fs::path relPath = fs::relative(srcFile, dir);
+      fs::path destFile = fs::path(texDestDir) / relPath;
+      fs::create_directories(destFile.parent_path());
+      std::error_code ec;
+      fs::copy_file(srcFile, destFile, fs::copy_options::overwrite_existing, ec);
+      if (!ec) {
+        copied.push_back(destFile.string());
+      }
+    }
+  }
+  return copied;
 }
 
 void EditorApp::onInit(Window &window) {
@@ -60,6 +118,8 @@ void EditorApp::onInit(Window &window) {
   }
   m_textRenderer->Load(fontPath, 24);
 
+  createGrid();
+
   // Load default scene
   m_scene = std::make_unique<Scene>();
   if (!m_scene->loadFromFile("game/scenes/main_hall.json")) {
@@ -89,6 +149,32 @@ void EditorApp::onUpdate(float deltaTime, Window &window) {
       m_selectedEntity = -1;
       m_selectedLight = -1;
       m_selectionIsLight = false;
+      m_selectedCollection = nullptr;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  // Delete collection confirmation popup
+  if (m_confirmDeleteCollection) {
+    ImGui::OpenPopup("Delete Collection?##modal");
+    m_confirmDeleteCollection = false;
+  }
+  if (ImGui::BeginPopupModal("Delete Collection?##modal", nullptr,
+                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    std::string colName = m_selectedCollection ? m_selectedCollection->getName() : "";
+    int entCount = m_selectedCollection ? static_cast<int>(m_selectedCollection->collectAllEntities().size()) : 0;
+    ImGui::Text("Delete collection \"%s\"?", colName.c_str());
+    ImGui::Text("Entities in this collection (%d) will become ungrouped.", entCount);
+    if (ImGui::Button("Delete", ImVec2(120, 0))) {
+      if (m_selectedCollection) {
+        m_scene->removeCollection(m_selectedCollection);
+        m_selectedCollection = nullptr;
+      }
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
@@ -101,6 +187,31 @@ void EditorApp::onUpdate(float deltaTime, Window &window) {
   drawSceneHierarchy();
   drawInspector();
   drawViewport();
+
+  // Delete key removes current selection
+  if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+    if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity >= 0 &&
+        m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+      m_scene->removeEntity(static_cast<size_t>(m_selectedEntity));
+      m_selectedEntity = -1;
+    } else if (m_selectionIsLight && m_selectedLight >= 0 &&
+               m_selectedLight < static_cast<int>(m_scene->getLights().size())) {
+      m_scene->removeLight(static_cast<size_t>(m_selectedLight));
+      m_selectedLight = -1;
+      m_selectionIsLight = false;
+    } else if (m_selectedCollection) {
+      m_confirmDeleteCollection = true;
+    }
+  }
+
+  // Home key resets camera
+  if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+    m_editorCamPos = glm::vec3(0.0f, 10.0f, 20.0f);
+    m_editorCamTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_orbitDistance = 20.0f;
+    m_orbitYaw = -90.0f;
+    m_orbitPitch = 30.0f;
+  }
 }
 
 void EditorApp::onRender() {
@@ -118,6 +229,60 @@ void EditorApp::onShutdown() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+
+  if (m_gridVAO) glDeleteVertexArrays(1, &m_gridVAO);
+  if (m_gridVBO) glDeleteBuffers(1, &m_gridVBO);
+}
+
+void EditorApp::createGrid() {
+  const int gridHalf = 50;
+  const float y = 0.0f;
+  std::vector<float> vertices;
+
+  for (int i = -gridHalf; i <= gridHalf; i++) {
+    float pos = static_cast<float>(i);
+
+    vertices.push_back(pos); vertices.push_back(y); vertices.push_back(static_cast<float>(-gridHalf));
+    vertices.push_back(pos); vertices.push_back(y); vertices.push_back(static_cast<float>(gridHalf));
+
+    vertices.push_back(static_cast<float>(-gridHalf)); vertices.push_back(y); vertices.push_back(pos);
+    vertices.push_back(static_cast<float>(gridHalf)); vertices.push_back(y); vertices.push_back(pos);
+  }
+
+  m_gridVertexCount = static_cast<int>(vertices.size()) / 3;
+
+  glGenVertexArrays(1, &m_gridVAO);
+  glGenBuffers(1, &m_gridVBO);
+  glBindVertexArray(m_gridVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, m_gridVBO);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glBindVertexArray(0);
+}
+
+void EditorApp::drawGrid() {
+  if (m_gridVertexCount == 0) return;
+
+  Shader* shader = m_showDotMatrix ? m_dotmatrixShader.get() : m_standardShader.get();
+
+  glm::mat4 gridModel = glm::mat4(1.0f);
+  shader->setUniform("model", gridModel);
+  glm::mat3 normalMat = glm::mat3(1.0f);
+  shader->setUniform("normalMatrix", normalMat);
+  shader->setUniform("objectColor", glm::vec3(0.35f, 0.35f, 0.35f));
+  shader->setUniform("objectAlpha", 0.4f);
+  shader->setUniform("hasTexture", false);
+  shader->setUniform("hasNormalMap", false);
+  shader->setUniform("hasHeightMap", false);
+  shader->setUniform("hasRoughnessMap", false);
+
+  glBindVertexArray(m_gridVAO);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDrawArrays(GL_LINES, 0, m_gridVertexCount);
+  glDisable(GL_BLEND);
+  glBindVertexArray(0);
 }
 
 // ---------------------------------------------------------------------------
@@ -141,6 +306,7 @@ void EditorApp::drawMenuBar() {
           m_selectedEntity = -1;
           m_selectedLight = -1;
           m_selectionIsLight = false;
+          m_selectedCollection = nullptr;
         }
       }
       ImGui::Separator();
@@ -179,7 +345,71 @@ void EditorApp::drawMenuBar() {
       ImGui::MenuItem("Use Dot Matrix Preview", nullptr, &m_showDotMatrix);
       ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Play")) {
+      if (ImGui::MenuItem("Play in Game", "F5")) {
+        std::string scenePath = m_scene->getFilepath();
+        if (scenePath.empty()) {
+          scenePath = "game/scenes/_editor_play_scene.json";
+          m_scene->saveToFile(scenePath);
+        } else {
+          m_scene->saveToFile(scenePath);
+        }
+
+        std::string gameExe = "build/game/my_app";
+#ifdef _WIN32
+        gameExe = "build\\game\\my_app.exe";
+#endif
+
+        std::string command = gameExe + " \"" + scenePath + "\"";
+
+#ifdef _WIN32
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+
+        std::wstring wCommand(command.begin(), command.end());
+
+        if (CreateProcessW(nullptr, wCommand.data(), nullptr, nullptr, FALSE,
+                            0, nullptr, nullptr, &si, &pi)) {
+          WaitForSingleObject(pi.hProcess, INFINITE);
+          CloseHandle(pi.hProcess);
+          CloseHandle(pi.hThread);
+        } else {
+          std::cerr << "ERROR: Failed to launch game process." << std::endl;
+        }
+#else
+        int ret = system(command.c_str());
+        (void)ret;
+#endif
+      }
+      ImGui::EndMenu();
+    }
     ImGui::EndMainMenuBar();
+  }
+
+  // Scene stats overlay at bottom of screen
+  {
+    float statsHeight = 20.0f;
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, statsHeight));
+    ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - statsHeight));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGuiWindowFlags statsFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                                   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                                   ImGuiWindowFlags_NoSavedSettings;
+    if (ImGui::Begin("##stats", nullptr, statsFlags)) {
+      int entCount = static_cast<int>(m_scene->getEntities().size());
+      int lightCount = static_cast<int>(m_scene->getLights().size());
+      int colCount = 0;
+      std::vector<Collection*> allCols = m_scene->getAllCollections();
+      colCount = static_cast<int>(allCols.size());
+      ImGui::Text("Entities: %d  |  Lights: %d  |  Collections: %d  |  FPS: %.0f",
+                  entCount, lightCount, colCount, ImGui::GetIO().Framerate);
+    }
+    ImGui::End();
+    ImGui::PopStyleVar(2);
   }
 }
 
@@ -188,7 +418,22 @@ void EditorApp::drawSceneHierarchy() {
   ImGui::SetNextWindowSize(ImVec2(250, 400), ImGuiCond_FirstUseEver);
   ImGui::Begin("Scene Hierarchy");
 
-  // Entities section
+  // Collections section
+  if (ImGui::CollapsingHeader("Collections", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::Button("Add Collection")) {
+      std::string name = "Collection " + std::to_string(m_scene->getRootCollections().size() + 1);
+      m_scene->addCollection(name);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Remove Collection") && m_selectedCollection) {
+      m_confirmDeleteCollection = true;
+    }
+
+    int nodeIndex = 0;
+    drawCollectionTree(m_scene->getRootCollections(), nodeIndex);
+  }
+
+  // Ungrouped entities section
   if (ImGui::CollapsingHeader("Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
     if (ImGui::Button("Add Cube")) {
       PrimitiveGenerator primGen;
@@ -199,18 +444,151 @@ void EditorApp::drawSceneHierarchy() {
       m_scene->addEntity(ent);
       m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
       m_selectionIsLight = false;
+      m_selectedCollection = nullptr;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Add Plane")) {
+      PrimitiveGenerator primGen;
+      Entity *ent = new Entity("new_plane", primGen.generatePlane(10.0f, 10.0f, 1.0f),
+                               glm::vec3(0, 0, 0), glm::quat(),
+                               glm::vec3(1, 1, 1), true);
+      ent->setColor(glm::vec4(0.5f, 0.5f, 0.6f, 1.0f));
+      ent->setPrimitiveParams(PrimitiveParams{"plane", 10.0f, 10.0f, 1.0f, 0, 0, 0});
+      m_scene->addEntity(ent);
+      m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
+      m_selectionIsLight = false;
+      m_selectedCollection = nullptr;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Add Cuboid")) {
+      PrimitiveGenerator primGen;
+      Entity *ent = new Entity("new_cuboid", primGen.generateCuboid(2.0f, 1.0f, 3.0f),
+                               glm::vec3(0, 0.5f, 0), glm::quat(),
+                               glm::vec3(1, 1, 1), true);
+      ent->setColor(glm::vec4(0.6f, 0.4f, 0.3f, 1.0f));
+      ent->setPrimitiveParams(PrimitiveParams{"cuboid", 0, 0, 0, 2.0f, 1.0f, 3.0f});
+      m_scene->addEntity(ent);
+      m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
+      m_selectionIsLight = false;
+      m_selectedCollection = nullptr;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Model...")) {
+      auto selection = pfd::open_file(
+          "Select Model File", "",
+          std::vector<std::string>{"3D Models", "*.glb *.gltf *.fbx *.obj *.dae *.3ds", "All Files", "*.*"},
+          pfd::opt::none).result();
+      if (!selection.empty()) {
+        namespace fs = std::filesystem;
+        std::string srcPath = selection[0];
+        fs::path srcFile(srcPath);
+
+        std::string modelsDir = "shared/assets/models";
+        std::string texturesDir = "shared/assets/textures";
+        fs::create_directories(fs::path(modelsDir));
+        fs::create_directories(fs::path(texturesDir));
+
+        std::string destModelPath = (fs::path(modelsDir) / srcFile.filename()).string();
+        if (copyFileToDir(srcPath, modelsDir)) {
+          std::string modelDir = srcFile.parent_path().string();
+          copyTexturesFromDir(modelDir + "/textures", texturesDir);
+          copyTexturesFromDir(modelDir + "/Textures", texturesDir);
+          copyTexturesFromDir(modelDir, texturesDir);
+
+          std::string modelName = srcFile.stem().string();
+          Model* model = new Model(destModelPath, texturesDir);
+          Entity* ent = new Entity(modelName, model, glm::vec3(0, 0, 0), glm::quat(),
+                                   glm::vec3(1, 1, 1), false);
+          ent->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+          ModelParams mp;
+          mp.modelPath = destModelPath;
+          mp.texturesFolder = texturesDir;
+          ent->setModelParams(mp);
+
+          m_scene->addEntity(ent);
+          m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
+          m_selectionIsLight = false;
+          m_selectedCollection = nullptr;
+        } else {
+          std::cerr << "ERROR: Failed to copy model file to assets directory." << std::endl;
+        }
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button("Remove Entity")) {
-      if (!m_selectionIsLight && m_selectedEntity >= 0 &&
+      if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity >= 0 &&
           m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
         m_scene->removeEntity(static_cast<size_t>(m_selectedEntity));
         m_selectedEntity = -1;
       }
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Duplicate")) {
+      if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity >= 0 &&
+          m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+        Entity* src = m_scene->getEntities()[m_selectedEntity];
+        Model* model = nullptr;
+        if (src->hasPrimitiveParams()) {
+          PrimitiveGenerator primGen;
+          const auto& p = src->getPrimitiveParams();
+          if (p.primitiveType == "cube") model = primGen.generateCube(p.size);
+          else if (p.primitiveType == "plane") model = primGen.generatePlane(p.width, p.depth, p.thickness);
+          else if (p.primitiveType == "cuboid") model = primGen.generateCuboid(p.length, p.width, p.height);
+        } else if (src->hasModelParams()) {
+          const auto& mp = src->getModelParams();
+          ModelTextures mt;
+          mt.baseColor = mp.baseColor;
+          mt.normal = mp.normal;
+          mt.height = mp.height;
+          mt.roughness = mp.roughness;
+          model = new Model(mp.modelPath, mp.texturesFolder, mt);
+        }
+        if (model) {
+          Entity* dup = new Entity(src->getName() + " (copy)", model,
+                                   src->getPosition() + glm::vec3(1, 0, 1),
+                                   src->getRotation(), src->getScale(),
+                                   src->isCollidable());
+          dup->setColor(src->getColor());
+          dup->setVisible(src->isVisible());
+          if (src->hasPrimitiveParams()) dup->setPrimitiveParams(src->getPrimitiveParams());
+          if (src->hasModelParams()) dup->setModelParams(src->getModelParams());
+          if (src->getCollection()) src->getCollection()->addEntity(dup);
+          m_scene->addEntity(dup);
+          m_selectedEntity = static_cast<int>(m_scene->getEntities().size()) - 1;
+        }
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("##up", ImGuiDir_Up)) {
+      if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity > 0 &&
+          m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+        m_scene->swapEntities(static_cast<size_t>(m_selectedEntity),
+                              static_cast<size_t>(m_selectedEntity - 1));
+        m_selectedEntity--;
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("##down", ImGuiDir_Down)) {
+      if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity >= 0 &&
+          m_selectedEntity < static_cast<int>(m_scene->getEntities().size()) - 1) {
+        m_scene->swapEntities(static_cast<size_t>(m_selectedEntity),
+                              static_cast<size_t>(m_selectedEntity + 1));
+        m_selectedEntity++;
+      }
+    }
 
     int idx = 0;
     for (Entity *ent : m_scene->getEntities()) {
+      // Only show entities not in any collection here
+      if (ent->getCollection()) {
+        idx++;
+        continue;
+      }
+
+      bool effectVisible = ent->isVisible();
+      bool grayed = !effectVisible;
+
       ImGui::PushID(idx);
       bool visible = ent->isVisible();
       if (ImGui::Checkbox("##vis", &visible)) {
@@ -219,8 +597,12 @@ void EditorApp::drawSceneHierarchy() {
       ImGui::PopID();
       ImGui::SameLine();
 
+      if (grayed) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+      }
+
       ImGuiTreeNodeFlags flags =
-          ((!m_selectionIsLight && m_selectedEntity == idx)
+          ((!m_selectionIsLight && !m_selectedCollection && m_selectedEntity == idx)
                ? ImGuiTreeNodeFlags_Selected
                : 0) |
           ImGuiTreeNodeFlags_Leaf;
@@ -228,9 +610,14 @@ void EditorApp::drawSceneHierarchy() {
       if (ImGui::IsItemClicked()) {
         m_selectedEntity = idx;
         m_selectionIsLight = false;
+        m_selectedCollection = nullptr;
       }
       if (opened)
         ImGui::TreePop();
+
+      if (grayed) {
+        ImGui::PopStyleColor();
+      }
       idx++;
     }
   }
@@ -247,6 +634,8 @@ void EditorApp::drawSceneHierarchy() {
       m_scene->addLight(light);
       m_selectedLight = static_cast<int>(m_scene->getLights().size()) - 1;
       m_selectionIsLight = true;
+      m_selectedCollection = nullptr;
+      m_selectedEntity = -1;
     }
     ImGui::SameLine();
     if (ImGui::Button("Add Point")) {
@@ -259,6 +648,8 @@ void EditorApp::drawSceneHierarchy() {
       m_scene->addLight(light);
       m_selectedLight = static_cast<int>(m_scene->getLights().size()) - 1;
       m_selectionIsLight = true;
+      m_selectedCollection = nullptr;
+      m_selectedEntity = -1;
     }
     ImGui::SameLine();
     if (ImGui::Button("Remove Light")) {
@@ -284,6 +675,8 @@ void EditorApp::drawSceneHierarchy() {
       if (ImGui::IsItemClicked()) {
         m_selectedLight = lidx;
         m_selectionIsLight = true;
+        m_selectedCollection = nullptr;
+        m_selectedEntity = -1;
       }
       if (opened)
         ImGui::TreePop();
@@ -292,6 +685,99 @@ void EditorApp::drawSceneHierarchy() {
   }
 
   ImGui::End();
+}
+
+void EditorApp::drawCollectionTree(const std::vector<Collection*>& collections, int& nodeIndex) {
+  for (Collection* col : collections) {
+    ImGui::PushID(nodeIndex);
+
+    // Visibility eye icon
+    bool visible = col->isVisible();
+    if (ImGui::Checkbox("##cvis", &visible)) {
+      col->setVisible(visible);
+    }
+    ImGui::SameLine();
+
+    // Collection tree node
+    bool isSelected = (m_selectedCollection == col);
+    ImGuiTreeNodeFlags flags = isSelected ? ImGuiTreeNodeFlags_Selected : 0;
+    if (col->getChildren().empty() && col->getEntities().empty()) {
+      flags |= ImGuiTreeNodeFlags_Leaf;
+    }
+
+    bool effectVisible = col->isEffectivelyVisible();
+    if (!effectVisible) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+    }
+
+    std::string label = col->getName() + " [" + std::to_string(col->getEntities().size()) + "]";
+    bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
+    if (ImGui::IsItemClicked()) {
+      m_selectedCollection = col;
+      m_selectedEntity = -1;
+      m_selectionIsLight = false;
+      m_collectionDeltaPos = glm::vec3(0.0f);
+    }
+
+    if (!effectVisible) {
+      ImGui::PopStyleColor();
+    }
+
+    if (opened) {
+      // Render child collections
+      int childIdx = 0;
+      drawCollectionTree(col->getChildren(), childIdx);
+
+      // Render entities in this collection
+      int entIdx = 0;
+      for (Entity* ent : col->getEntities()) {
+        ImGui::PushID(1000 + entIdx);
+        bool entVisible = ent->isVisible();
+        if (ImGui::Checkbox("##evis", &entVisible)) {
+          ent->setVisible(entVisible);
+        }
+        ImGui::PopID();
+        ImGui::SameLine();
+
+        bool entGrayed = !ent->isVisible() || !effectVisible;
+        if (entGrayed) {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+        }
+
+        ImGuiTreeNodeFlags entFlags = ImGuiTreeNodeFlags_Leaf;
+        // Find global entity index for selection
+        int globalIdx = 0;
+        for (int i = 0; i < static_cast<int>(m_scene->getEntities().size()); i++) {
+          if (m_scene->getEntities()[i] == ent) {
+            globalIdx = i;
+            break;
+          }
+        }
+        if (!m_selectionIsLight && !m_selectedCollection && m_selectedEntity == globalIdx) {
+          // Don't highlight here since collection is selected
+        }
+
+        bool entOpened = ImGui::TreeNodeEx(ent->getName().c_str(), ImGuiTreeNodeFlags_Leaf);
+        if (ImGui::IsItemClicked()) {
+          m_selectedEntity = globalIdx;
+          m_selectionIsLight = false;
+          m_selectedCollection = nullptr;
+        }
+        if (entOpened)
+          ImGui::TreePop();
+
+        if (entGrayed) {
+          ImGui::PopStyleColor();
+        }
+        entIdx++;
+      }
+
+      ImGui::TreePop();
+    }
+
+    ImGui::PopID();
+    nodeIndex++;
+  }
 }
 
 void EditorApp::drawInspector() {
@@ -303,7 +789,6 @@ void EditorApp::drawInspector() {
       m_selectedLight < static_cast<int>(m_scene->getLights().size())) {
     Light &light = m_scene->getLights()[m_selectedLight];
 
-    // Name
     char nameBuf[64];
     strncpy(nameBuf, light.name.c_str(), sizeof(nameBuf));
     nameBuf[sizeof(nameBuf) - 1] = '\0';
@@ -311,17 +796,13 @@ void EditorApp::drawInspector() {
       light.name = nameBuf;
     }
 
-    // Type
     const char *types[] = {"Directional", "Point", "Spot"};
     int currentType = static_cast<int>(light.type);
     if (ImGui::Combo("Type", &currentType, types, IM_ARRAYSIZE(types))) {
       light.type = static_cast<LightType>(currentType);
     }
 
-    // Color
     ImGui::ColorEdit3("Color", &light.color.x);
-
-    // Intensity
     ImGui::DragFloat("Intensity", &light.intensity, 0.05f, 0.0f, 100.0f);
 
     if (light.type == LightType::Directional || light.type == LightType::Spot) {
@@ -335,6 +816,60 @@ void EditorApp::drawInspector() {
       ImGui::DragFloat("Linear", &light.linear, 0.001f, 0.0f, 10.0f);
       ImGui::DragFloat("Quadratic", &light.quadratic, 0.0001f, 0.0f, 10.0f);
     }
+  } else if (m_selectedCollection) {
+    Collection* col = m_selectedCollection;
+
+    char nameBuf[64];
+    strncpy(nameBuf, col->getName().c_str(), sizeof(nameBuf));
+    nameBuf[sizeof(nameBuf) - 1] = '\0';
+    if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+      col->setName(nameBuf);
+    }
+
+    bool visible = col->isVisible();
+    if (ImGui::Checkbox("Visible", &visible)) {
+      col->setVisible(visible);
+    }
+
+    int entCount = static_cast<int>(col->getEntities().size());
+    int childCount = static_cast<int>(col->getChildren().size());
+    std::vector<Entity*> allEnts = col->collectAllEntities();
+    int totalCount = static_cast<int>(allEnts.size());
+    ImGui::Text("Direct entities: %d", entCount);
+    ImGui::Text("Child collections: %d", childCount);
+    ImGui::Text("Total entities: %d", totalCount);
+
+    ImGui::Separator();
+    ImGui::Text("Delta Transform (applies to all entities)");
+
+    if (ImGui::DragFloat3("Position Offset", &m_collectionDeltaPos.x, 0.1f)) {
+      glm::vec3 delta = m_collectionDeltaPos;
+      for (Entity* ent : allEnts) {
+        ent->setPosition(ent->getPosition() + delta);
+      }
+      m_collectionDeltaPos = glm::vec3(0.0f);
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Move selected entity into this collection:");
+
+    if (!m_selectionIsLight && m_selectedEntity >= 0 &&
+        m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
+      Entity* ent = m_scene->getEntities()[m_selectedEntity];
+      if (ent->getCollection() != col) {
+        if (ImGui::Button("Move Selected Entity Here")) {
+          col->addEntity(ent);
+        }
+      } else {
+        ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Entity already in this collection");
+      }
+    }
+
+    // Add child collection
+    if (ImGui::Button("Add Child Collection")) {
+      std::string childName = col->getName() + " " + std::to_string(col->getChildren().size() + 1);
+      m_scene->addCollection(childName, col);
+    }
   } else if (!m_selectionIsLight && m_selectedEntity >= 0 &&
              m_selectedEntity < static_cast<int>(m_scene->getEntities().size())) {
     Entity *ent = m_scene->getEntities()[m_selectedEntity];
@@ -344,6 +879,22 @@ void EditorApp::drawInspector() {
     nameBuf[sizeof(nameBuf) - 1] = '\0';
     if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
       ent->setName(nameBuf);
+    }
+
+    if (ent->hasPrimitiveParams()) {
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Type: Primitive (%s)",
+                         ent->getPrimitiveParams().primitiveType.c_str());
+    } else if (ent->hasModelParams()) {
+      ImGui::TextColored(ImVec4(0.4f, 0.6f, 1.0f, 1.0f), "Type: Model");
+      ImGui::TextWrapped("Path: %s", ent->getModelParams().modelPath.c_str());
+    } else {
+      ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Type: Unknown");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Focus")) {
+      m_editorCamTarget = ent->getWorldCenter();
+      m_orbitDistance = 10.0f;
     }
 
     glm::vec3 pos = ent->getPosition();
@@ -368,6 +919,35 @@ void EditorApp::drawInspector() {
 
     bool collidable = ent->isCollidable();
     ImGui::Checkbox("Collidable", &collidable);
+
+    // Show which collection the entity belongs to
+    if (ent->getCollection()) {
+      ImGui::Separator();
+      ImGui::Text("Collection: %s", ent->getCollection()->getName().c_str());
+      if (ImGui::Button("Remove from Collection")) {
+        ent->getCollection()->removeEntity(ent);
+      }
+    } else {
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No collection (ungrouped)");
+      if (!m_scene->getRootCollections().empty()) {
+        ImGui::Text("Move to collection:");
+        for (Collection* col : m_scene->getRootCollections()) {
+          std::vector<Collection*> allCols = m_scene->getAllCollections();
+          (void)col; // suppress unused warning
+          break;
+        }
+        // Flatten all collections for a simple dropdown
+        std::vector<Collection*> allCols = m_scene->getAllCollections();
+        for (Collection* c : allCols) {
+          if (ImGui::SmallButton(c->getName().c_str())) {
+            c->addEntity(ent);
+          }
+          ImGui::SameLine();
+        }
+        ImGui::NewLine();
+      }
+    }
   } else {
     ImGui::Text("No selection");
   }
@@ -435,6 +1015,15 @@ void EditorApp::drawViewport() {
         reinterpret_cast<ImTextureID>(
             static_cast<uintptr_t>(m_viewport->getColorTexture())),
         avail, ImVec2(0, 1), ImVec2(1, 0));
+
+    // FPS overlay
+    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetItemRectMin().x + 8.0f,
+                                       ImGui::GetItemRectMin().y + 4.0f));
+    char fpsBuf[32];
+    snprintf(fpsBuf, sizeof(fpsBuf), "FPS: %.0f", ImGui::GetIO().Framerate);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 0.8f));
+    ImGui::TextUnformatted(fpsBuf);
+    ImGui::PopStyleColor();
   }
 
   ImGui::End();
@@ -473,6 +1062,8 @@ void EditorApp::renderSceneToViewport() {
   } else {
     shader->setUniform("viewPos", m_editorCamPos);
   }
+
+  drawGrid();
 
   for (Entity *ent : m_scene->getEntities()) {
     ent->Draw(*shader);

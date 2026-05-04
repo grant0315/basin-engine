@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <optional>
+#include "basin/scene/collection.h"
 
 struct PrimitiveParams {
   std::string primitiveType;
@@ -21,6 +22,15 @@ struct PrimitiveParams {
   float size = 0.0f;
   float length = 0.0f;
   float height = 0.0f;
+};
+
+struct ModelParams {
+  std::string modelPath;
+  std::string texturesFolder;
+  std::string baseColor;
+  std::string normal;
+  std::string height;
+  std::string roughness;
 };
 
 class Entity {
@@ -150,10 +160,15 @@ public:
   bool isCollidable() const { return m_isCollidable; }
   bool isVisible() const { return m_visible; }
   void setVisible(bool visible) { m_visible = visible; }
+  Collection* getCollection() const { return m_collection; }
 
   void setPrimitiveParams(const PrimitiveParams& params) { m_primitiveParams = params; }
   bool hasPrimitiveParams() const { return m_primitiveParams.has_value(); }
   const PrimitiveParams& getPrimitiveParams() const { return m_primitiveParams.value(); }
+
+  void setModelParams(const ModelParams& params) { m_modelParams = params; }
+  bool hasModelParams() const { return m_modelParams.has_value(); }
+  const ModelParams& getModelParams() const { return m_modelParams.value(); }
 
   // --- Setters ---
   void setPosition(glm::vec3 pos) {
@@ -204,6 +219,7 @@ public:
 
   void Draw(Shader &shader) {
     if (!m_visible) return;
+    if (m_collection && !m_collection->isEffectivelyVisible()) return;
 
     // 1. Calculate the model matrix from position, rotation, and scale
     // 2. Pass the matrix to the shader
@@ -258,7 +274,7 @@ public:
   }
 
 private:
-  bool m_dirty; // Flag for needing rebuild of matrix
+  bool m_dirty;
   bool m_dirtyAABB;
   bool m_isCollidable;
   bool m_visible = true;
@@ -272,11 +288,16 @@ private:
   float m_alpha = 1.0f;
   glm::vec3 m_scale;
 
-  // Axis-Aligned Bounding Boxes (cached)
   std::vector<AABB> m_cachedMeshAABBs;
   AABB m_AABB;
 
   std::optional<PrimitiveParams> m_primitiveParams;
+  std::optional<ModelParams> m_modelParams;
+
+  Collection* m_collection = nullptr;
+
+  friend class Collection;
+  friend class Scene;
 };
 
 #endif

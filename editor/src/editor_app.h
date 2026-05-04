@@ -3,6 +3,7 @@
 
 #include "basin/engine.h"
 #include "basin/scene/scene.h"
+#include "basin/scene/collection.h"
 #include "basin/renderer/shader.h"
 #include "basin/renderer/text_renderer.h"
 #include "viewport.h"
@@ -23,6 +24,9 @@ private:
   void drawInspector();
   void drawViewport();
   void renderSceneToViewport();
+  void drawCollectionTree(const std::vector<Collection*>& collections, int& nodeIndex);
+  void createGrid();
+  void drawGrid();
 
   std::unique_ptr<Scene> m_scene;
   std::unique_ptr<Viewport> m_viewport;
@@ -31,11 +35,20 @@ private:
   Shader *m_activeShader = nullptr;
   std::unique_ptr<TextRenderer> m_textRenderer;
 
+  // Grid
+  GLuint m_gridVAO = 0;
+  GLuint m_gridVBO = 0;
+  int m_gridVertexCount = 0;
+
   int m_selectedEntity = -1;
   int m_selectedLight = -1;
   bool m_selectionIsLight = false;
+  Collection* m_selectedCollection = nullptr;
+
+  glm::vec3 m_collectionDeltaPos = glm::vec3(0.0f);
   bool m_useDotMatrix = true;
-  bool m_showDotMatrix = false; // for viewport preview
+  bool m_showDotMatrix = false;
+  bool m_confirmDeleteCollection = false;
 
   // Camera for editor viewport
   glm::vec3 m_editorCamPos = glm::vec3(0.0f, 10.0f, 20.0f);

@@ -2,6 +2,8 @@
 #include "basin/renderer/model.h"
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include <functional>
 
 using basin::Light;
 using basin::LightType;
@@ -13,11 +15,17 @@ void Scene::cleanup() {
     delete ent;
   }
   m_entities.clear();
+
+  for (Collection* col : m_rootCollections) {
+    delete col;
+  }
+  m_rootCollections.clear();
 }
 
 void Scene::resetToEmpty(const std::string& name) {
   cleanup();
   m_lights.clear();
+  m_rootCollections.clear();
   m_name = name;
   m_filepath.clear();
   m_lastModifiedTime = std::filesystem::file_time_type();
@@ -185,6 +193,18 @@ bool Scene::loadFromFile(const std::string& filepath) {
         entity->setVisible(ent.value("visible", true));
         if (type == "primitive") {
           entity->setPrimitiveParams(primParams);
+        } else {
+          ModelParams modelParams;
+          modelParams.modelPath = ent.value("model", "");
+          modelParams.texturesFolder = ent.value("textures_folder", "");
+          if (ent.contains("textures")) {
+            auto& tex = ent["textures"];
+            modelParams.baseColor = tex.value("base_color", "");
+            modelParams.normal = tex.value("normal", "");
+            modelParams.height = tex.value("height", "");
+            modelParams.roughness = tex.value("roughness", "");
+          }
+          entity->setModelParams(modelParams);
         }
 
         // Override base color from JSON if provided (RGBA 0-255)
@@ -205,6 +225,38 @@ bool Scene::loadFromFile(const std::string& filepath) {
       }
     }
 
+    // Load collections (backward compatible: missing key = no collections)
+    if (j.contains("collections")) {
+      std::function<void(const json&, Collection*)> loadCollectionTree =
+          [&](const json& colArray, Collection* parent) {
+        for (const auto& colJson : colArray) {
+          std::string colName = colJson.value("name", "Collection");
+          bool colVisible = colJson.value("visible", true);
+          Collection* col = addCollection(colName, parent);
+          col->setVisible(colVisible);
+
+          // Associate entities by name
+          if (colJson.contains("entity_names")) {
+            for (const auto& entName : colJson["entity_names"]) {
+              std::string name = entName.get<std::string>();
+              for (Entity* ent : m_entities) {
+                if (ent->getName() == name) {
+                  col->addEntity(ent);
+                  break;
+                }
+              }
+            }
+          }
+
+          // Recurse into children
+          if (colJson.contains("children")) {
+            loadCollectionTree(colJson["children"], col);
+          }
+        }
+      };
+      loadCollectionTree(j["collections"], nullptr);
+    }
+
     std::cout << "Scene loaded: " << m_name << " with " << m_entities.size() << " entities" << std::endl;
     return true;
 
@@ -219,8 +271,80 @@ bool Scene::loadFromFile(const std::string& filepath) {
 
 void Scene::removeEntity(size_t index) {
   if (index >= m_entities.size()) return;
-  delete m_entities[index];
+  Entity* ent = m_entities[index];
+  if (ent->getCollection()) {
+    ent->getCollection()->removeEntity(ent);
+  }
+  delete ent;
   m_entities.erase(m_entities.begin() + index);
+}
+
+void Scene::swapEntities(size_t a, size_t b) {
+  if (a < m_entities.size() && b < m_entities.size() && a != b) {
+    std::swap(m_entities[a], m_entities[b]);
+  }
+}
+
+Collection* Scene::addCollection(const std::string& name, Collection* parent) {
+  Collection* col = new Collection(name);
+  if (parent) {
+    parent->addChild(col);
+  } else {
+    m_rootCollections.push_back(col);
+  }
+  return col;
+}
+
+void deleteCollectionRecursive(Collection* collection) {
+  for (Collection* child : collection->getChildren()) {
+    deleteCollectionRecursive(child);
+  }
+  delete collection;
+}
+
+void Scene::removeCollection(Collection* collection) {
+  if (!collection) return;
+
+  std::vector<Entity*> entities = collection->collectAllEntities();
+  for (Entity* ent : entities) {
+    ent->m_collection = nullptr;
+  }
+
+  if (collection->getParent()) {
+    collection->getParent()->removeChild(collection);
+  } else {
+    auto it = std::find(m_rootCollections.begin(), m_rootCollections.end(), collection);
+    if (it != m_rootCollections.end()) {
+      m_rootCollections.erase(it);
+    }
+  }
+  deleteCollectionRecursive(collection);
+}
+
+Collection* Scene::findCollection(const std::string& name) {
+  std::function<Collection*(const std::vector<Collection*>&)> search =
+      [&](const std::vector<Collection*>& collections) -> Collection* {
+    for (Collection* col : collections) {
+      if (col->getName() == name) return col;
+      Collection* found = search(col->getChildren());
+      if (found) return found;
+    }
+    return nullptr;
+  };
+  return search(m_rootCollections);
+}
+
+std::vector<Collection*> Scene::getAllCollections() const {
+  std::vector<Collection*> result;
+  std::function<void(const std::vector<Collection*>&)> collect =
+      [&](const std::vector<Collection*>& collections) {
+    for (Collection* col : collections) {
+      result.push_back(col);
+      collect(col->getChildren());
+    }
+  };
+  collect(m_rootCollections);
+  return result;
 }
 
 bool Scene::saveToFile(const std::string& filepath) {
@@ -287,14 +411,56 @@ bool Scene::saveToFile(const std::string& filepath) {
         ej["width"] = p.width;
         ej["height"] = p.height;
       }
+    } else if (ent->hasModelParams()) {
+      const ModelParams& mp = ent->getModelParams();
+      ej["type"] = "model";
+      ej["model"] = mp.modelPath;
+      if (!mp.texturesFolder.empty()) {
+        ej["textures_folder"] = mp.texturesFolder;
+      }
+      json texJson;
+      bool hasAnyTexture = false;
+      if (!mp.baseColor.empty()) { texJson["base_color"] = mp.baseColor; hasAnyTexture = true; }
+      if (!mp.normal.empty()) { texJson["normal"] = mp.normal; hasAnyTexture = true; }
+      if (!mp.height.empty()) { texJson["height"] = mp.height; hasAnyTexture = true; }
+      if (!mp.roughness.empty()) { texJson["roughness"] = mp.roughness; hasAnyTexture = true; }
+      if (hasAnyTexture) {
+        ej["textures"] = texJson;
+      }
     } else {
       ej["type"] = "model";
-      // Model path not tracked yet; fallback
     }
 
     entities.push_back(ej);
   }
   j["entities"] = entities;
+
+  // Serialize collections recursively
+  std::function<json(const std::vector<Collection*>&)> serializeCollections =
+      [&](const std::vector<Collection*>& collections) -> json {
+    json arr = json::array();
+    for (Collection* col : collections) {
+      json cj;
+      cj["name"] = col->getName();
+      cj["visible"] = col->isVisible();
+
+      json entNames = json::array();
+      for (Entity* ent : col->getEntities()) {
+        entNames.push_back(ent->getName());
+      }
+      cj["entity_names"] = entNames;
+
+      if (!col->getChildren().empty()) {
+        cj["children"] = serializeCollections(col->getChildren());
+      } else {
+        cj["children"] = json::array();
+      }
+      arr.push_back(cj);
+    }
+    return arr;
+  };
+
+  j["collections"] = serializeCollections(m_rootCollections);
 
   std::ofstream file(filepath);
   if (!file.is_open()) {

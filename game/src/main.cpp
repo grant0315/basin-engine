@@ -36,6 +36,8 @@ static void uploadLights(Shader &shader, const std::vector<Light> &lights) {
 
 class GameApp : public Application {
 public:
+  GameApp(const std::string& scenePath) : m_scenePath(scenePath) {}
+
   void onInit(Window &window) override {
     // Player
     PrimitiveGenerator primGen;
@@ -66,7 +68,7 @@ public:
 
     // Scene
     m_scene = std::make_unique<Scene>();
-    if (!m_scene->loadFromFile("game/scenes/main_hall.json")) {
+    if (!m_scene->loadFromFile(m_scenePath)) {
       std::cout << "Failed to load scene, using fallback" << std::endl;
     }
     m_player->setPosition(m_scene->getSpawnPoint());
@@ -186,11 +188,17 @@ private:
   double m_lastFpsTime = 0.0;
   int m_frameCount = 0;
   float m_fps = 0.0f;
+  std::string m_scenePath;
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+  std::string scenePath = "game/scenes/main_hall.json";
+  if (argc > 1) {
+    scenePath = argv[1];
+  }
+
   Engine engine(1200, 800, "Basin Engine");
-  GameApp game;
+  GameApp game(scenePath);
   engine.run(&game);
   return 0;
 }

@@ -5,6 +5,7 @@ add_library(basin_engine STATIC
   src/renderer/model.cpp
   src/renderer/text_renderer.cpp
   src/scene/scene.cpp
+  src/scene/collection.cpp
   src/scene/primitive_generator.cpp
   src/physics/collision_system.cpp
   src/platform/window.cpp
